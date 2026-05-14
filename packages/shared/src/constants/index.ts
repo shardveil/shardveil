@@ -1,4 +1,4 @@
-import type { CardRarity, PackTier } from '../types/index.js';
+import type { BattleRank, CardRarity, PackTier } from '../types/index.js';
 
 /** Pack tier configurations (cost in SHARD wei, cards per pack, min rarity, daily limit) */
 export const PACK_TIERS: Record<PackTier, { costWei: bigint; cardCount: number; minRarity: CardRarity; dailyLimit: number }> = {
@@ -9,7 +9,7 @@ export const PACK_TIERS: Record<PackTier, { costWei: bigint; cardCount: number; 
 };
 
 /** XP thresholds to reach each rank */
-export const RANK_THRESHOLDS: Record<string, number> = {
+export const RANK_THRESHOLDS: Record<BattleRank, number> = {
   BRONZE:   0,
   SILVER:   500,
   GOLD:     1500,
@@ -20,10 +20,10 @@ export const RANK_THRESHOLDS: Record<string, number> = {
 
 /** Crafting recipe definitions */
 export const CRAFTING_RECIPES = [
-  { id: 'upgrade_common',    inputs: ['COMMON', 'COMMON', 'COMMON'] as CardRarity[],     output: 'UNCOMMON' as CardRarity, feeBps: 50  },
-  { id: 'upgrade_uncommon',  inputs: ['UNCOMMON', 'UNCOMMON', 'UNCOMMON'] as CardRarity[], output: 'RARE' as CardRarity,     feeBps: 75  },
-  { id: 'upgrade_rare',      inputs: ['RARE', 'RARE', 'RARE'] as CardRarity[],           output: 'EPIC' as CardRarity,     feeBps: 100 },
-  { id: 'upgrade_epic',      inputs: ['EPIC', 'EPIC'] as CardRarity[],                   output: 'LEGENDARY' as CardRarity, feeBps: 150 },
+  { id: 'upgrade_common',    inputs: ['COMMON', 'COMMON', 'COMMON'] as readonly CardRarity[],     output: 'UNCOMMON' as CardRarity, feeBps: 50  },
+  { id: 'upgrade_uncommon',  inputs: ['UNCOMMON', 'UNCOMMON', 'UNCOMMON'] as readonly CardRarity[], output: 'RARE' as CardRarity,     feeBps: 75  },
+  { id: 'upgrade_rare',      inputs: ['RARE', 'RARE', 'RARE'] as readonly CardRarity[],           output: 'EPIC' as CardRarity,     feeBps: 100 },
+  { id: 'upgrade_epic',      inputs: ['EPIC', 'EPIC'] as readonly CardRarity[],                   output: 'LEGENDARY' as CardRarity, feeBps: 150 },
 ] as const;
 
 /** Tailwind CSS glow class per rarity for card borders/glows */

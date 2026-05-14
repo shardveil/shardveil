@@ -20,11 +20,13 @@ export function formatVeil(amount: bigint): string {
   return `${whole.toLocaleString()}.${frac.toString().padStart(4, '0')} VEIL`;
 }
 
-/** Parses a decimal string like "100.5" into wei bigint */
+/** Parses a decimal string like "100.5" into wei bigint. Throws on invalid input. */
 export function parseShardInput(input: string): bigint {
-  const [whole, frac = ''] = input.split('.');
+  const trimmed = input.trim();
+  if (!trimmed || trimmed.startsWith('-')) throw new Error(`Invalid amount: ${input}`);
+  const [whole = '0', frac = ''] = trimmed.split('.');
   const fracPadded = frac.slice(0, 18).padEnd(18, '0');
-  return BigInt(whole ?? '0') * 10n ** 18n + BigInt(fracPadded);
+  return BigInt(whole || '0') * 10n ** 18n + BigInt(fracPadded);
 }
 
 /** Returns Tailwind classes for rarity glow effect */
