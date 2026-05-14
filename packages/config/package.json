@@ -6,12 +6,12 @@
   "exports": {
     "./tsconfig.base.json": "./tsconfig.base.json",
     "./eslint.base.js": "./eslint.base.js",
+    "./eslint.react.js": "./eslint.react.js",
     "./prettier.base.js": "./prettier.base.js",
     "./tailwind.base.js": "./tailwind.base.js"
   },
   "peerDependencies": {
     "eslint": "^9",
-    "eslint-plugin-import": "^2",
     "eslint-plugin-react": "^7",
     "eslint-plugin-react-hooks": "^5",
     "eslint-plugin-simple-import-sort": "^12",
@@ -23,7 +23,6 @@
   "peerDependenciesMeta": {
     "eslint-plugin-react": { "optional": true },
     "eslint-plugin-react-hooks": { "optional": true },
-    "eslint-plugin-import": { "optional": true },
     "eslint-plugin-simple-import-sort": { "optional": true },
     "typescript-eslint": { "optional": true }
   }

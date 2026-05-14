@@ -3,7 +3,6 @@
   "compilerOptions": {
     "composite": true,
     "target": "ES2022",
-    "lib": ["ES2022"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
@@ -18,9 +17,6 @@
     "sourceMap": true,
     "esModuleInterop": true,
     "isolatedModules": true,
-    "noEmit": false,
-    "paths": {
-      "@shardveil/*": ["../../packages/*/src/index.ts"]
-    }
+    "noEmit": false
   }
 }
