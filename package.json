@@ -12,6 +12,7 @@
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
+    "clean": "turbo clean",
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\"",
     "services:up": "docker compose up -d",
     "services:down": "docker compose down",

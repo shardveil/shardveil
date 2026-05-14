@@ -8,9 +8,10 @@ dist
 .turbo
 
 # Environment files
-.env
-.env.local
-.env.*.local
+.env*.local
+.env.production
+.env.development
+.env.staging
 
 # OS files
 .DS_Store
@@ -24,3 +25,16 @@ coverage
 
 # Git worktrees
 .worktrees
+
+# Hardhat / Foundry
+artifacts/
+cache/
+typechain-types/
+out/
+broadcast/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
