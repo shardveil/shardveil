@@ -9,7 +9,10 @@ import { env } from './env';
  *
  * All sensitive fields are automatically redacted:
  * - JWT_SECRET
- * - *_PRIVATE_KEY (e.g., SETTLER_PRIVATE_KEY)
+ * - SETTLER_PRIVATE_KEY
+ * - WAR_ORACLE_PRIVATE_KEY
+ * - TOURNAMENT_ORACLE_PRIVATE_KEY
+ * - XP_ORACLE_PRIVATE_KEY
  * - Authorization header
  * - Cookie header
  */
@@ -21,7 +24,10 @@ const pinoConfig = {
   redact: {
     paths: [
       'JWT_SECRET',
-      '*.PRIVATE_KEY',
+      'SETTLER_PRIVATE_KEY',
+      'WAR_ORACLE_PRIVATE_KEY',
+      'TOURNAMENT_ORACLE_PRIVATE_KEY',
+      'XP_ORACLE_PRIVATE_KEY',
       'req.headers.authorization',
       'req.headers.cookie',
     ],

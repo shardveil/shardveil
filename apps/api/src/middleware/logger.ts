@@ -41,7 +41,6 @@ export const loggerMiddleware: MiddlewareHandler = async (c, next) => {
       method,
       path,
       ip,
-      timestamp: new Date().toISOString(),
     },
     'Request started',
   );
@@ -61,7 +60,6 @@ export const loggerMiddleware: MiddlewareHandler = async (c, next) => {
         path,
         status,
         durationMs,
-        timestamp: new Date().toISOString(),
       },
       'Request completed',
     );
@@ -74,7 +72,6 @@ export const loggerMiddleware: MiddlewareHandler = async (c, next) => {
       method,
       path,
       durationMs,
-      timestamp: new Date().toISOString(),
       error: error instanceof Error ? error.message : String(error),
     };
 
