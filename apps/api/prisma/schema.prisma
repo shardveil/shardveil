@@ -1,0 +1,313 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// Enums
+// ============================================================
+
+enum FriendRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+enum ActivityType {
+  PACK_OPENED
+  BATTLE_WON
+  BATTLE_LOST
+  CARD_CRAFTED
+  CARD_TRADED
+  GUILD_JOINED
+}
+
+enum NotificationType {
+  FRIEND_REQUEST
+  BATTLE_CHALLENGE
+  TRADE_OFFER
+  GUILD_INVITE
+  ACHIEVEMENT
+  SYSTEM
+}
+
+enum TournamentStatus {
+  PENDING
+  REGISTRATION
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum TradeStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+  EXPIRED
+}
+
+// ============================================================
+// Models
+// ============================================================
+
+model Player {
+  address       String  @id // Ethereum address (0x...)
+  username      String? @unique // Set on-chain via ProfileRegistry
+  bio           String? @db.VarChar(160)
+  avatarUrl     String?
+  twitterHandle String?
+  discordHandle String?
+  isPrivate     Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  friends         Friend[]         @relation("PlayerFriends")
+  friendOf        Friend[]         @relation("FriendOf")
+  sentRequests    FriendRequest[]  @relation("SentRequests")
+  receivedRequests FriendRequest[] @relation("ReceivedRequests")
+  sentMessages    DirectMessage[]  @relation("SentMessages")
+  receivedMessages DirectMessage[] @relation("ReceivedMessages")
+  battlesAsP1     Battle[]         @relation("BattlesAsP1")
+  battlesAsP2     Battle[]         @relation("BattlesAsP2")
+  wonBattles      Battle[]         @relation("WonBattles")
+  packs           Pack[]
+  activities      Activity[]
+  notifications   Notification[]
+  guildMemberships GuildMember[]
+  guildMessages   GuildMessage[]   @relation("GuildMessageSender")
+  globalMessages  GlobalChatMessage[] @relation("GlobalChatSender")
+  tournamentEntries TournamentPlayer[]
+  sentTradeOffers  TradeOffer[]    @relation("SentOffers")
+  receivedTradeOffers TradeOffer[] @relation("ReceivedOffers")
+  leaderboardSnapshots LeaderboardSnapshot[]
+}
+
+model Friend {
+  id        String   @id @default(cuid())
+  playerId  String
+  friendId  String
+  createdAt DateTime @default(now())
+
+  player Player @relation("PlayerFriends", fields: [playerId], references: [address])
+  friend Player @relation("FriendOf", fields: [friendId], references: [address])
+
+  @@unique([playerId, friendId])
+}
+
+model FriendRequest {
+  id          String              @id @default(cuid())
+  fromAddress String
+  toAddress   String
+  status      FriendRequestStatus @default(PENDING)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  from Player @relation("SentRequests", fields: [fromAddress], references: [address])
+  to   Player @relation("ReceivedRequests", fields: [toAddress], references: [address])
+
+  @@unique([fromAddress, toAddress])
+}
+
+model DirectMessage {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  content    String   @db.VarChar(1000)
+  createdAt  DateTime @default(now())
+
+  sender   Player @relation("SentMessages", fields: [senderId], references: [address])
+  receiver Player @relation("ReceivedMessages", fields: [receiverId], references: [address])
+
+  @@index([senderId, receiverId, createdAt(sort: Desc)])
+}
+
+model Battle {
+  id          String    @id @default(cuid())
+  player1     String
+  player2     String
+  winner      String?
+  player1Deck String[] // card IDs
+  player2Deck String[]
+  log         Json?
+  startedAt   DateTime  @default(now())
+  settledAt   DateTime?
+  txHash      String?
+
+  p1       Player  @relation("BattlesAsP1", fields: [player1], references: [address])
+  p2       Player  @relation("BattlesAsP2", fields: [player2], references: [address])
+  winnedBy Player? @relation("WonBattles", fields: [winner], references: [address])
+
+  tournamentMatches TournamentMatch[]
+
+  @@index([player1, settledAt(sort: Desc)])
+  @@index([player2, settledAt(sort: Desc)])
+}
+
+model Pack {
+  id            String   @id @default(cuid())
+  playerAddress String
+  tier          String // COMMON, RARE, EPIC, LEGENDARY
+  cardIds       String[] // revealed card IDs
+  txHash        String?
+  vrfRequestId  String?
+  createdAt     DateTime @default(now())
+
+  player Player @relation(fields: [playerAddress], references: [address])
+
+  @@index([playerAddress, createdAt(sort: Desc)])
+}
+
+model Activity {
+  id           String       @id @default(cuid())
+  actorAddress String
+  type         ActivityType
+  data         Json
+  createdAt    DateTime     @default(now())
+
+  actor Player @relation(fields: [actorAddress], references: [address])
+
+  @@index([actorAddress, createdAt(sort: Desc)])
+}
+
+model Notification {
+  id            String           @id @default(cuid())
+  playerAddress String
+  type          NotificationType
+  data          Json
+  readAt        DateTime?
+  createdAt     DateTime         @default(now())
+
+  player Player @relation(fields: [playerAddress], references: [address])
+
+  @@index([playerAddress, readAt])
+}
+
+model Guild {
+  id           String  @id @default(cuid())
+  name         String  @unique
+  description  String?
+  logoUrl      String?
+  ownerAddress String
+  memberCount  Int     @default(0)
+  warWins      Int     @default(0)
+  createdAt    DateTime @default(now())
+
+  members  GuildMember[]
+  messages GuildMessage[]
+}
+
+model GuildMember {
+  id            String   @id @default(cuid())
+  guildId       String
+  playerAddress String
+  role          String   @default("MEMBER")
+  joinedAt      DateTime @default(now())
+
+  guild  Guild  @relation(fields: [guildId], references: [id])
+  player Player @relation(fields: [playerAddress], references: [address])
+
+  @@unique([guildId, playerAddress])
+}
+
+model GuildMessage {
+  id            String   @id @default(cuid())
+  guildId       String
+  senderAddress String
+  content       String   @db.VarChar(1000)
+  createdAt     DateTime @default(now())
+
+  guild  Guild  @relation(fields: [guildId], references: [id])
+  sender Player @relation("GuildMessageSender", fields: [senderAddress], references: [address])
+}
+
+model GlobalChatMessage {
+  id            String   @id @default(cuid())
+  room          String   @default("global")
+  senderAddress String
+  content       String   @db.VarChar(500)
+  createdAt     DateTime @default(now())
+
+  sender Player @relation("GlobalChatSender", fields: [senderAddress], references: [address])
+
+  @@index([room, createdAt(sort: Desc)])
+}
+
+model Tournament {
+  id         String           @id @default(cuid())
+  name       String
+  status     TournamentStatus @default(PENDING)
+  format     String // SWISS, SINGLE_ELIM
+  maxPlayers Int
+  entryFee   String? // in VEIL tokens
+  prizePool  String?
+  startedAt  DateTime?
+  endedAt    DateTime?
+  createdAt  DateTime         @default(now())
+
+  matches TournamentMatch[]
+  players TournamentPlayer[]
+}
+
+model TournamentPlayer {
+  id            String   @id @default(cuid())
+  tournamentId  String
+  playerAddress String
+  registeredAt  DateTime @default(now())
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+  player     Player     @relation(fields: [playerAddress], references: [address])
+
+  @@unique([tournamentId, playerAddress])
+}
+
+model TournamentMatch {
+  id           String   @id @default(cuid())
+  tournamentId String
+  battleId     String?
+  round        Int
+  createdAt    DateTime @default(now())
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+  battle     Battle?    @relation(fields: [battleId], references: [id])
+}
+
+model TradeOffer {
+  id               String      @id @default(cuid())
+  initiatorAddress String
+  targetAddress    String? // null = public listing
+  offeredCardIds   String[]
+  wantedCardIds    String[]
+  status           TradeStatus @default(PENDING)
+  txHash           String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  initiator Player  @relation("SentOffers", fields: [initiatorAddress], references: [address])
+  target    Player? @relation("ReceivedOffers", fields: [targetAddress], references: [address])
+}
+
+model LeaderboardSnapshot {
+  id            String   @id @default(cuid())
+  seasonId      Int
+  playerAddress String
+  seasonExp     Int      @default(0)
+  battleWins    Int      @default(0)
+  craftCount    Int      @default(0)
+  snappedAt     DateTime @default(now())
+
+  player Player @relation(fields: [playerAddress], references: [address])
+
+  @@unique([seasonId, playerAddress])
+  @@index([seasonId, seasonExp(sort: Desc)])
+}

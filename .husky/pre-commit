@@ -1,2 +1,6 @@
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" --no-use
+export PATH="$NVM_DIR/versions/node/v22.22.2/bin:$PATH"
+cd "$(git rev-parse --show-toplevel)"
 pnpm lint-staged
 pnpm typecheck
