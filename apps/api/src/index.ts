@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
+import { env } from './config/env';
 
 const app = new Hono();
 
@@ -13,8 +14,6 @@ app.get('/health', (c) =>
   }),
 );
 
-const port = Number(process.env['PORT'] ?? 3001);
-
-serve({ fetch: app.fetch, port }, () => {
-  console.log(`ShardVeil API listening on http://localhost:${port}`);
+serve({ fetch: app.fetch, port: env.PORT }, () => {
+  console.log(`ShardVeil API listening on http://localhost:${env.PORT}`);
 });

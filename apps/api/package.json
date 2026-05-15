@@ -11,10 +11,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@shardveil/shared": "workspace:*",
+    "@hono/node-server": "^1.0.0",
     "@shardveil/contracts": "workspace:*",
+    "@shardveil/shared": "workspace:*",
     "hono": "^4.0.0",
-    "@hono/node-server": "^1.0.0"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@shardveil/config": "workspace:*",
