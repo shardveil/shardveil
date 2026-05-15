@@ -1,3 +1,5 @@
+# Requires Docker Compose V2 (use "docker compose", not "docker-compose")
+
 services:
   postgres:
     image: postgres:16
@@ -7,7 +9,7 @@ services:
       POSTGRES_PASSWORD: shardveil
       POSTGRES_DB: shardveil
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - shardveil_postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -18,13 +20,13 @@ services:
       start_period: 10s
     networks:
       - shardveil-network
-    restart: unless-stopped
+    restart: "no"
 
   redis:
     image: redis:7-alpine
     container_name: shardveil-redis
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - shardveil_redis_data:/data
     healthcheck:
@@ -35,7 +37,7 @@ services:
       start_period: 5s
     networks:
       - shardveil-network
-    restart: unless-stopped
+    restart: "no"
 
 volumes:
   shardveil_postgres_data:
