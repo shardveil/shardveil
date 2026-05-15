@@ -1,0 +1,51 @@
+name: Deploy Preview
+
+# NOTE: Vercel preview deployments are handled automatically by the Vercel GitHub App.
+# This workflow documents the deployment intent and can be used for manual testing or future enhancements.
+#
+# Prerequisites:
+# 1. Vercel GitHub App must be installed on this repository
+# 2. apps/web project must be configured in Vercel
+# 3. apps/web/vercel.json must exist with build configuration for monorepo
+#
+# When a PR is opened/updated:
+# - Vercel automatically creates a preview deployment
+# - A comment with the preview URL is added to the PR
+# - The frontend (apps/web) is deployed to the preview environment
+# - The backend is excluded from preview deployments
+#
+# Preview URLs follow the pattern: https://<project>-pr-<pr-number>.vercel.app
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      # Only trigger for frontend changes
+      - 'apps/web/**'
+      - 'packages/**'
+      - 'pnpm-workspace.yaml'
+      - 'pnpm-lock.yaml'
+
+jobs:
+  # Stub job: Vercel GitHub App handles the actual deployment.
+  # This job can be used for additional checks or documentation.
+  preview-deployment-info:
+    name: Preview Deployment Info
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log Preview URL Info
+        run: |
+          echo "Preview Deployment Configuration"
+          echo "================================"
+          echo "Project: Shardveil Web"
+          echo "Framework: Next.js 15"
+          echo "Build Command: pnpm --filter @shardveil/web build"
+          echo "Output Directory: .next"
+          echo ""
+          echo "Note: The actual deployment is handled by Vercel GitHub App"
+          echo "Preview URL will be automatically added as a comment on this PR"
