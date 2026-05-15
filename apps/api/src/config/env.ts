@@ -11,7 +11,7 @@ const envSchema = z.object({
   NODE_ENV: z
     .enum(['development', 'production', 'test'])
     .default('development'),
-  PORT: z.coerce.number().int().positive().default(3001),
+  PORT: z.coerce.number().int().min(1).max(65535).default(3001),
 
   // Database (PostgreSQL via Prisma)
   DATABASE_URL: z.string().url(),
@@ -20,8 +20,8 @@ const envSchema = z.object({
   REDIS_URL: z.string().url(),
 
   // JWT / Auth
-  JWT_SECRET: z.string().min(1),
-  JWT_EXPIRES_IN: z.string(),
+  JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
+  JWT_EXPIRES_IN: z.string().regex(/^\d+[smhd]$/, 'JWT_EXPIRES_IN must be like 7d, 24h, 3600s'),
 
   // Ethereum / EVM (on-chain features)
   // Arbitrum mainnet RPC
@@ -63,10 +63,16 @@ const envSchema = z.object({
   PINATA_JWT: z.string().min(1),
 
   // Sentry (error tracking) - optional
-  SENTRY_DSN: z.string().url().optional(),
+  SENTRY_DSN: z.preprocess(
+    (val) => (val === '' ? undefined : val),
+    z.string().url().optional(),
+  ),
 
   // Toxic words list - optional
-  TOXIC_WORDS_LIST_URL: z.string().url().optional(),
+  TOXIC_WORDS_LIST_URL: z.preprocess(
+    (val) => (val === '' ? undefined : val),
+    z.string().url().optional(),
+  ),
 });
 
 type Env = z.infer<typeof envSchema>;
@@ -75,7 +81,7 @@ type Env = z.infer<typeof envSchema>;
  * Validate and export the environment variables.
  * Fails fast at boot if any required variable is missing or malformed.
  */
-export function parseEnv(): Env {
+function parseEnv(): Env {
   const result = envSchema.safeParse(process.env);
 
   if (!result.success) {
