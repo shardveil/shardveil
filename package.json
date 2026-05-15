@@ -4,7 +4,9 @@
   "packageManager": "pnpm@9.15.4",
   "devDependencies": {
     "turbo": "^2.5.4",
-    "prettier": "^3.5.3"
+    "prettier": "^3.5.3",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2"
   },
   "scripts": {
     "dev": "turbo dev",
@@ -16,6 +18,16 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\"",
     "services:up": "docker compose up -d",
     "services:down": "docker compose down",
-    "services:logs": "docker compose logs -f"
+    "services:logs": "docker compose logs -f",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
   }
 }
