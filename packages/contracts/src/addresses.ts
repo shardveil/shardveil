@@ -3,6 +3,18 @@ import type { Address } from "@shardveil/shared";
 export const ARBITRUM_SEPOLIA_CHAIN_ID = 421614;
 export const ARBITRUM_ONE_CHAIN_ID = 42161;
 
+/** Chain IDs that have live contract deployments. */
+export type SupportedChainId = typeof ARBITRUM_SEPOLIA_CHAIN_ID;
+
+/**
+ * Returns the contract addresses for a chain with a live deployment.
+ * Accepts only `SupportedChainId` values, so callers never receive
+ * `Address | null` and are not required to narrow the result.
+ */
+export function getAddresses(chainId: SupportedChainId) {
+  return addresses[chainId];
+}
+
 export const addresses = {
   [ARBITRUM_SEPOLIA_CHAIN_ID]: {
     shardToken: "0x46c08085f5871626EB61964B1E251F74F307d22b" as Address,

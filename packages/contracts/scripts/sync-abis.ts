@@ -40,14 +40,16 @@ const FILE_MAP: Record<string, [string, string]> = {
 
 /**
  * Extracts the array literal from a source ABI file.
- * Expects the pattern: export const <NAME>ABI = [...] as const;
+ * Uses indexOf/lastIndexOf so nested `]` characters inside struct
+ * component arrays are handled correctly at any nesting depth.
  */
 function extractArrayLiteral(source: string): string {
-  const match = source.match(/=\s*(\[[\s\S]*?\])\s*as\s+const/);
-  if (!match) {
-    throw new Error('Could not find array literal with "as const" in source file.');
+  const start = source.indexOf('[');
+  const end = source.lastIndexOf(']');
+  if (start === -1 || end === -1 || end <= start) {
+    throw new Error('Could not find array literal in source file.');
   }
-  return match[1];
+  return source.slice(start, end + 1);
 }
 
 let synced = 0;
