@@ -12,6 +12,9 @@ const PING_INTERVAL_MS = 30_000;
 /** How long to wait for a pong before disconnecting (ms). */
 const PONG_TIMEOUT_MS = 10_000;
 
+/** WebSocket readyState value for an open connection. */
+const WS_OPEN = 1;
+
 /**
  * Create a Hono sub-app that handles the `/ws` upgrade endpoint, and return
  * both the app and the `injectWebSocket` function needed to wire it into the
@@ -83,7 +86,7 @@ export function createWsApp(): {
           // within PONG_TIMEOUT_MS or the connection is terminated.
           // ------------------------------------------------------------------
           pingTimer = setInterval(() => {
-            if (ws.readyState !== 1 /* OPEN */) {
+            if (ws.readyState !== WS_OPEN) {
               stopHeartbeat();
               return;
             }
@@ -95,13 +98,15 @@ export function createWsApp(): {
               return;
             }
 
-            pongTimer = setTimeout(() => {
-              logger.warn(
-                { address },
-                "WS: pong timeout — closing stale connection",
-              );
-              ws.close(1001, "Pong timeout");
-            }, PONG_TIMEOUT_MS);
+            if (pongTimer === null) {
+              pongTimer = setTimeout(() => {
+                logger.warn(
+                  { address },
+                  "WS: pong timeout — closing stale connection",
+                );
+                ws.close(1001, "Pong timeout");
+              }, PONG_TIMEOUT_MS);
+            }
           }, PING_INTERVAL_MS);
         },
 
@@ -154,14 +159,12 @@ export function createWsApp(): {
         },
 
         // ------------------------------------------------------------------
-        // onError: log and clean up
+        // onError: log and stop heartbeat — onClose fires after and handles unregister
         // ------------------------------------------------------------------
-        onError(_event, ws) {
+        onError(_event, _ws) {
           logger.error({ address }, "WS: socket error");
           stopHeartbeat();
-          if (address !== null) {
-            connectionManager.unregister(ws);
-          }
+          // onClose will fire after this and handle unregister
         },
       };
     }),

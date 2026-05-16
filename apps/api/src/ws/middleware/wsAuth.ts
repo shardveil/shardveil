@@ -1,4 +1,5 @@
 import { jwtVerify } from "jose";
+import { getAddress, isAddress } from "viem";
 
 import { env } from "../../config/env";
 import { logger } from "../../config/logger";
@@ -65,5 +66,9 @@ export async function verifyWsToken(
     }
   }
 
-  return sub as Address;
+  if (!isAddress(sub)) {
+    throw new Error("JWT sub is not a valid Ethereum address");
+  }
+
+  return getAddress(sub) as Address; // normalizes checksum
 }

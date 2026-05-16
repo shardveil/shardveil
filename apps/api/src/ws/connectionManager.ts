@@ -8,6 +8,9 @@ import type { Address } from "../config/viem";
 /** TTL for presence keys in Redis (seconds). Refreshed on each heartbeat. */
 const PRESENCE_TTL_SECONDS = 300; // 5 minutes
 
+/** WebSocket readyState value for an open connection. */
+const WS_OPEN = 1;
+
 /** Opaque type alias so callers can't confuse raw WebSocket with WSContext. */
 type Socket = WSContext<WebSocket>;
 
@@ -202,7 +205,7 @@ class ConnectionManager {
 
   private _safeSend(socket: Socket, message: string): void {
     try {
-      if (socket.readyState === 1 /* OPEN */) {
+      if (socket.readyState === WS_OPEN) {
         socket.send(message);
       }
     } catch (err) {
