@@ -4,12 +4,12 @@ import { env } from "./env";
 import { logger } from "./logger";
 
 /**
- * Redis client singleton with exponential backoff reconnection strategy.
+ * Redis client singleton with linear backoff reconnection strategy.
  *
  * Configuration:
  * - maxRetriesPerRequest: null — allows pipelined requests
  * - enableOfflineQueue: false — fails fast instead of queuing commands
- * - retryStrategy: exponential backoff (100ms * attempts, max 3s)
+ * - retryStrategy: linear backoff (100ms × attempt, max 3s), not exponential
  * - max 5 retries before exiting process
  *
  * The Redis instance is created and cached on first import.
@@ -36,7 +36,7 @@ export function getRedis(): Redis {
       const backoffMs = Math.min(times * 100, 3000);
       logger.warn(
         { attempt: times, backoffMs },
-        "Redis reconnecting with exponential backoff",
+        "Redis reconnecting with linear backoff",
       );
       return backoffMs;
     },
