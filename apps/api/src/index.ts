@@ -6,8 +6,13 @@ import { prisma } from "./config/database";
 import { env } from "./config/env";
 import { logger } from "./config/logger";
 import { redis } from "./config/redis";
+import { createWsApp } from "./ws/wsServer";
 
 const VERSION = process.env["npm_package_version"] ?? "0.0.1";
+
+// Mount WebSocket sub-app and obtain the injectWebSocket helper
+const { wsApp, injectWebSocket } = createWsApp();
+app.route("/ws", wsApp);
 
 const server = serve({ fetch: app.fetch, port: env.PORT }, () => {
   const addresses = getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID);
@@ -21,6 +26,10 @@ const server = serve({ fetch: app.fetch, port: env.PORT }, () => {
     "ShardVeil API started",
   );
 });
+
+// Wire the WebSocket upgrade handler into the Node.js HTTP server.
+// This must be called after `serve()` returns the server instance.
+injectWebSocket(server);
 
 // Graceful shutdown
 async function shutdown(signal: string) {
