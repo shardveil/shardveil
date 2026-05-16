@@ -4,7 +4,9 @@ import { Hono } from "hono";
 import { logger } from "../config/logger";
 import type { Address } from "../config/viem";
 import { connectionManager } from "./connectionManager";
+import { messageRouter } from "./messageRouter";
 import { verifyWsToken, WS_CLOSE_UNAUTHORIZED } from "./middleware/wsAuth";
+import { cleanupRateLimit } from "./middleware/wsRateLimit";
 
 /** Ping interval in milliseconds. */
 const PING_INTERVAL_MS = 30_000;
@@ -111,18 +113,27 @@ export function createWsApp(): {
         },
 
         // ------------------------------------------------------------------
-        // onMessage: intercept pong frames; forward everything else
+        // onMessage: intercept pong frames; forward everything else to the
+        // message router (rate-limited, Zod-validated, channel-dispatched).
         // ------------------------------------------------------------------
-        onMessage(event, _ws) {
+        onMessage(event, ws) {
           if (typeof event.data !== "string") {
             return; // ignore binary frames
           }
 
+          // Fast-path: intercept pong without JSON-parsing overhead
+          // Pong arrives as `{ "type": "pong" }` — check cheaply first.
           let msg: unknown;
           try {
             msg = JSON.parse(event.data);
           } catch {
-            return; // ignore malformed frames
+            // Malformed JSON — delegate to router so it closes with 4002
+            if (address !== null) {
+              messageRouter.route(ws, address, event.data).catch(() => {
+                /* already handled inside route() */
+              });
+            }
+            return;
           }
 
           if (
@@ -143,15 +154,20 @@ export function createWsApp(): {
             return;
           }
 
-          // Other message types will be dispatched by the channel router
-          // implemented in Task 4.2 (message routing + channel system).
+          // All other messages → channel router
+          if (address !== null) {
+            messageRouter.route(ws, address, event.data).catch(() => {
+              /* errors are handled and logged inside route() */
+            });
+          }
         },
 
         // ------------------------------------------------------------------
-        // onClose: clean up heartbeat timers and remove from registry
+        // onClose: clean up heartbeat timers, rate-limit state, and registry
         // ------------------------------------------------------------------
         onClose(_event, ws) {
           stopHeartbeat();
+          cleanupRateLimit(ws);
           if (address !== null) {
             connectionManager.unregister(ws);
           }
