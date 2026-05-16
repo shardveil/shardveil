@@ -30,7 +30,8 @@ function createPrismaClient(): PrismaClient {
     log: [
       { level: "warn", emit: "event" },
       { level: "error", emit: "event" },
-      // Only log queries that exceed 200 ms
+      // Prisma emits query events for ALL queries; we filter by duration client-side.
+      // There is no way to emit only slow queries at the Prisma level (known limitation).
       { level: "query", emit: "event" },
     ],
   });
