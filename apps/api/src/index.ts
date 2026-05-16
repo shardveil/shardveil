@@ -3,8 +3,14 @@ import { Hono } from "hono";
 
 import { prisma } from "./config/database";
 import { env } from "./config/env";
+import { errorHandler } from "./middleware/errorHandler";
+import { authRouter } from "./routes/auth";
 
 const app = new Hono();
+
+app.onError(errorHandler);
+
+app.route("/auth", authRouter);
 
 app.get("/", (c) => c.text("ShardVeil API"));
 
