@@ -79,15 +79,18 @@ export async function checkRateLimit(
   }
 
   // -------------------------------------------------------------------------
-  // 2. Per-address per-minute (Redis INCR + EXPIRE)
+  // 2. Per-address per-minute (Redis INCR + EXPIRE with pipeline)
   // -------------------------------------------------------------------------
   const redisKey = `ws:rl:${address}:min`;
   try {
-    const count = await redis.incr(redisKey);
-    if (count === 1) {
-      // First message in this window — set TTL
-      await redis.expire(redisKey, MINUTE_TTL_SECONDS);
-    }
+    // Use pipeline to atomically send INCR + EXPIRE in a single round-trip
+    // Prevents race condition where key could be left without TTL
+    const pipeline = redis.pipeline();
+    pipeline.incr(redisKey);
+    pipeline.expire(redisKey, MINUTE_TTL_SECONDS);
+    const results = await pipeline.exec();
+    const count = (results?.[0]?.[1] as number) ?? 0;
+
     if (count > MAX_MSG_PER_MINUTE) {
       logger.warn(
         { address, count },
