@@ -9,7 +9,7 @@
 import { cacheService } from "./cacheService";
 import { prisma } from "../config/database";
 import { logger } from "../config/logger";
-import { ValidationError, NotFoundError } from "../lib/errors";
+import { ApiError, ValidationError, NotFoundError } from "../lib/errors";
 
 // ============================================================================
 // Types
@@ -121,45 +121,41 @@ export async function getProfile(address: string): Promise<ProfileData | null> {
 
     return profile;
   } catch (error) {
-    logger.error({ error, address }, "Failed to get profile");
-    throw error;
+    // Re-throw ApiError subclasses (e.g. ValidationError, NotFoundError) as-is
+    if (error instanceof ApiError) throw error;
+    logger.error({ error, address }, "profileService error");
+    throw new ApiError(500, "INTERNAL", "Something went wrong");
   }
 }
 
 /**
  * Update or create a player profile.
  *
- * Upserts a Player record in Prisma and invalidates the cache.
+ * Updates a Player record in Prisma and invalidates the cache.
+ * Throws NotFoundError if player does not exist.
  *
  * @param address - Ethereum address (0x...)
  * @param updates - Fields to update (bio, twitterHandle, discordHandle, isPrivate)
  * @returns Updated ProfileData
+ * @throws NotFoundError if player does not exist
  */
 export async function updateProfile(
   address: string,
   updates: ProfileUpdateInput,
 ): Promise<ProfileData> {
   try {
-    // Validate update fields
-    if (updates.bio !== undefined && updates.bio.length > 160) {
-      throw new ValidationError("Bio must be 160 characters or less");
-    }
+    // Check that player exists
+    const existing = await prisma.player.findUnique({ where: { address } });
+    if (!existing) throw new NotFoundError("Player not found");
 
-    // Upsert the player record
-    const player = await prisma.player.upsert({
+    // Update the player record
+    const player = await prisma.player.update({
       where: { address },
-      update: {
-        bio: updates.bio,
-        twitterHandle: updates.twitterHandle,
-        discordHandle: updates.discordHandle,
-        isPrivate: updates.isPrivate,
-      },
-      create: {
-        address,
-        bio: updates.bio,
-        twitterHandle: updates.twitterHandle,
-        discordHandle: updates.discordHandle,
-        isPrivate: updates.isPrivate ?? false,
+      data: {
+        ...(updates.bio !== undefined && { bio: updates.bio }),
+        ...(updates.twitterHandle !== undefined && { twitterHandle: updates.twitterHandle }),
+        ...(updates.discordHandle !== undefined && { discordHandle: updates.discordHandle }),
+        ...(updates.isPrivate !== undefined && { isPrivate: updates.isPrivate }),
       },
     });
 
@@ -173,8 +169,10 @@ export async function updateProfile(
 
     return profile;
   } catch (error) {
-    logger.error({ error, address }, "Failed to update profile");
-    throw error;
+    // Re-throw ApiError subclasses (e.g. ValidationError, NotFoundError) as-is
+    if (error instanceof ApiError) throw error;
+    logger.error({ error, address }, "profileService error");
+    throw new ApiError(500, "INTERNAL", "Something went wrong");
   }
 }
 
@@ -183,11 +181,13 @@ export async function updateProfile(
  *
  * Validates the IPFS CID format and updates the avatarUrl field in Prisma.
  * Invalidates cache.
+ * Throws NotFoundError if player does not exist.
  *
  * @param address - Ethereum address (0x...)
  * @param ipfsCid - IPFS content ID (CIDv0 or CIDv1)
  * @returns Updated ProfileData
  * @throws ValidationError if CID format is invalid
+ * @throws NotFoundError if player does not exist
  */
 export async function updateAvatar(
   address: string,
@@ -199,17 +199,17 @@ export async function updateAvatar(
       throw new ValidationError("Invalid IPFS CID format");
     }
 
+    // Check that player exists
+    const existing = await prisma.player.findUnique({ where: { address } });
+    if (!existing) throw new NotFoundError("Player not found");
+
     // Construct IPFS URL (assuming gateway)
     const avatarUrl = `ipfs://${ipfsCid}`;
 
-    // Update the player record (upsert to ensure player exists)
-    const player = await prisma.player.upsert({
+    // Update the player record
+    const player = await prisma.player.update({
       where: { address },
-      update: { avatarUrl },
-      create: {
-        address,
-        avatarUrl,
-      },
+      data: { avatarUrl },
     });
 
     const profile = playerToProfileData(player);
@@ -222,14 +222,17 @@ export async function updateAvatar(
 
     return profile;
   } catch (error) {
-    logger.error({ error, address, ipfsCid }, "Failed to update avatar");
-    throw error;
+    // Re-throw ApiError subclasses (e.g. ValidationError, NotFoundError) as-is
+    if (error instanceof ApiError) throw error;
+    logger.error({ error, address, ipfsCid }, "profileService error");
+    throw new ApiError(500, "INTERNAL", "Something went wrong");
   }
 }
 
 /**
  * Check if a username is available (not taken by another player).
  *
+ * Caches result for 60 seconds to prevent DB enumeration attacks.
  * Currently checks the database only for uniqueness.
  * TODO: call ProfileRegistry.isUsernameAvailable when Module 02 deploys
  *
@@ -240,13 +243,21 @@ export async function checkUsernameAvailable(
   username: string,
 ): Promise<boolean> {
   try {
+    const cacheKey = `username-check:${username.toLowerCase()}`;
+    const cached = await cacheService.get<boolean>(cacheKey);
+    if (cached !== null) return cached;
+
     const existing = await prisma.player.findUnique({
       where: { username },
     });
 
-    return !existing;
+    const available = existing === null;
+    await cacheService.set(cacheKey, available, 60);
+    return available;
   } catch (error) {
-    logger.error({ error, username }, "Failed to check username availability");
-    throw error;
+    // Re-throw ApiError subclasses (e.g. ValidationError, NotFoundError) as-is
+    if (error instanceof ApiError) throw error;
+    logger.error({ error, username }, "profileService error");
+    throw new ApiError(500, "INTERNAL", "Something went wrong");
   }
 }

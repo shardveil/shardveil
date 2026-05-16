@@ -11,7 +11,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 
-import { ValidationError, NotFoundError } from "../lib/errors";
+import { ApiError, ValidationError, NotFoundError } from "../lib/errors";
 import { requireAuth, optionalAuth } from "../middleware/auth";
 import {
   getProfile,
@@ -30,8 +30,8 @@ const profileRouter = new Hono();
 
 const updateProfileBodySchema = z.object({
   bio: z.string().max(160).optional(),
-  twitterHandle: z.string().optional(),
-  discordHandle: z.string().optional(),
+  twitterHandle: z.string().max(50).optional(),
+  discordHandle: z.string().max(50).optional(),
   isPrivate: z.boolean().optional(),
 });
 
@@ -63,7 +63,7 @@ function applyPrivacyRules(
   }
 
   // If requester is the owner, show full profile
-  if (requesterAddress === profile.address) {
+  if (requesterAddress?.toLowerCase() === profile.address.toLowerCase()) {
     return profile;
   }
 
@@ -121,7 +121,7 @@ profileRouter.get("/:address", optionalAuth, async (c) => {
   }
 
   // Apply privacy rules: requester is c.get('address') or undefined if not authenticated
-  const requesterAddress = c.get("address");
+  const requesterAddress = c.get("address") as string | undefined;
   const filtered = applyPrivacyRules(profile, requesterAddress);
 
   return c.json(filtered);
@@ -149,18 +149,7 @@ profileRouter.patch("/me", requireAuth, async (c) => {
     );
   }
 
-  const updates: ProfileUpdateInput = parsed.data;
-
-  // Only include fields that were provided (not undefined)
-  const sanitized: ProfileUpdateInput = {};
-  if (updates.bio !== undefined) sanitized.bio = updates.bio;
-  if (updates.twitterHandle !== undefined)
-    sanitized.twitterHandle = updates.twitterHandle;
-  if (updates.discordHandle !== undefined)
-    sanitized.discordHandle = updates.discordHandle;
-  if (updates.isPrivate !== undefined) sanitized.isPrivate = updates.isPrivate;
-
-  const profile = await updateProfile(address, sanitized);
+  const profile = await updateProfile(address, parsed.data);
 
   return c.json(profile);
 });
