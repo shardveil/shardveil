@@ -57,13 +57,7 @@ export async function verifySiweAndIssueJwt(
     throw new UnauthorizedError("Nonce not found in message");
   }
 
-  // 3. Consume the nonce atomically (blocks replays and expired nonces)
-  const consumed = await consumeNonce(nonce);
-  if (!consumed) {
-    throw new UnauthorizedError("Nonce expired or already used");
-  }
-
-  // 4. Validate chain ID matches expected chain
+  // 3. Validate chain ID matches expected chain (BEFORE consuming nonce)
   const chainIdStr = extractField(message, "Chain ID");
   const chainId = chainIdStr ? parseInt(chainIdStr, 10) : null;
   if (chainId !== arbitrumSepolia.id) {
@@ -72,6 +66,12 @@ export async function verifySiweAndIssueJwt(
       "Chain ID mismatch in SIWE message",
     );
     throw new UnauthorizedError("Invalid chain ID");
+  }
+
+  // 4. Consume the nonce atomically (blocks replays and expired nonces)
+  const consumed = await consumeNonce(nonce);
+  if (!consumed) {
+    throw new UnauthorizedError("Nonce expired or already used");
   }
 
   // 5. Upsert Player — create on first login, no-op on subsequent logins

@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 
-import { verifyMessage } from "viem";
+import { recoverMessageAddress } from "viem";
 
 import { env } from "../config/env";
 import { logger } from "../config/logger";
@@ -71,10 +71,11 @@ export function buildMessage(
 }
 
 /**
- * Verify an EIP-191 signed message using viem's verifyMessage.
+ * Verify an EIP-191 signed message by recovering the signer's address from the signature.
  *
- * Extracts the address from the message (line 2) and verifies the signature.
- * Returns null address if verification fails.
+ * Uses viem's recoverMessageAddress to cryptographically derive the actual signer
+ * from the signature (rather than trusting the address in the message text).
+ * Then cross-checks that the message claims to be from this recovered address.
  *
  * @param message - The original SIWE message (built with buildMessage())
  * @param signature - The 0x-prefixed signature (65 bytes, 130 hex chars)
@@ -85,20 +86,19 @@ export async function verifySignature(
   signature: `0x${string}`,
 ): Promise<{ valid: boolean; address: Address | null }> {
   try {
-    // Extract address from line 2 of the message
-    const lines = message.split("\n");
-    const address = lines[1] as Address;
+    // Recover the actual signer from the signature (cryptographically derived)
+    const recovered = await recoverMessageAddress({ message, signature });
 
-    // Verify using viem's verifyMessage (EIP-191)
-    const valid = await verifyMessage({
-      address,
-      message,
-      signature,
-    });
+    // Cross-check: the message must also claim to be from this address (line 2)
+    const lines = message.split("\n");
+    const claimedAddress = lines[1] as Address;
+
+    // Validate that recovered address matches claimed address
+    const valid = recovered.toLowerCase() === claimedAddress.toLowerCase();
 
     return {
       valid,
-      address: valid ? address : null,
+      address: valid ? recovered : null,
     };
   } catch (error) {
     logger.error({ error }, "Error verifying signature");
