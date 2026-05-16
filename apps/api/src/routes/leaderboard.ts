@@ -11,6 +11,18 @@ import { Hono } from "hono";
 import { ValidationError } from "../lib/errors";
 import { leaderboardService } from "../services/leaderboardService";
 
+/**
+ * Parse and clamp limit query parameter
+ *
+ * @param raw - Raw query parameter value
+ * @param max - Maximum allowed value (default: 100)
+ * @returns Parsed limit or default/max value
+ */
+function parseLimit(raw: string | undefined, max = 100): number {
+  const parsed = parseInt(raw ?? "", 10);
+  return isNaN(parsed) || parsed <= 0 ? max : Math.min(parsed, max);
+}
+
 const leaderboardRouter = new Hono();
 
 // ---------------------------------------------------------------------------
@@ -38,14 +50,7 @@ leaderboardRouter.get("/ranked", async (c) => {
     throw new ValidationError("seasonId must be a positive integer");
   }
 
-  // Parse and clamp limit
-  let limit = 100; // default
-  if (limitStr) {
-    const parsed = parseInt(limitStr, 10);
-    if (!isNaN(parsed) && parsed > 0) {
-      limit = Math.min(parsed, 100); // clamp to 100
-    }
-  }
+  const limit = parseLimit(limitStr);
 
   const result = await leaderboardService.getRanked(seasonId, limit);
   return c.json(result);
@@ -63,15 +68,7 @@ leaderboardRouter.get("/ranked", async (c) => {
  */
 leaderboardRouter.get("/guilds", async (c) => {
   const limitStr = c.req.query("limit");
-
-  // Parse and clamp limit
-  let limit = 100; // default
-  if (limitStr) {
-    const parsed = parseInt(limitStr, 10);
-    if (!isNaN(parsed) && parsed > 0) {
-      limit = Math.min(parsed, 100); // clamp to 100
-    }
-  }
+  const limit = parseLimit(limitStr);
 
   const result = await leaderboardService.getGuilds(limit);
   return c.json(result);
@@ -89,15 +86,7 @@ leaderboardRouter.get("/guilds", async (c) => {
  */
 leaderboardRouter.get("/crafters", async (c) => {
   const limitStr = c.req.query("limit");
-
-  // Parse and clamp limit
-  let limit = 100; // default
-  if (limitStr) {
-    const parsed = parseInt(limitStr, 10);
-    if (!isNaN(parsed) && parsed > 0) {
-      limit = Math.min(parsed, 100); // clamp to 100
-    }
-  }
+  const limit = parseLimit(limitStr);
 
   const result = await leaderboardService.getCrafters(limit);
   return c.json(result);

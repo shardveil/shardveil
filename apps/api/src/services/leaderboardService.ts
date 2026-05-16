@@ -9,6 +9,7 @@
 
 import { prisma } from "../config/database";
 import { cacheService } from "./cacheService";
+import { logger } from "../config/logger";
 
 /**
  * Ranked leaderboard entry (by seasonExp)
@@ -41,11 +42,11 @@ interface CrafterEntry {
 }
 
 /**
- * Response wrapper with updatedAt timestamp
+ * Response wrapper with cachedAt timestamp
  */
 interface LeaderboardResponse<T> {
   data: T[];
-  updatedAt: string;
+  cachedAt: string;
 }
 
 class LeaderboardService {
@@ -54,8 +55,8 @@ class LeaderboardService {
    * Uses read-through cache with 5min TTL.
    *
    * @param seasonId - Season to fetch
-   * @param limit - Maximum number of entries to return (no upper bound enforced here)
-   * @returns Ranked data with updatedAt timestamp
+   * @param limit - Maximum number of entries to return
+   * @returns Ranked data with cachedAt timestamp
    */
   async getRanked(
     seasonId: number,
@@ -63,87 +64,129 @@ class LeaderboardService {
   ): Promise<LeaderboardResponse<LeaderboardEntry>> {
     const cacheKey = `leaderboard:ranked:${seasonId}`;
 
-    return cacheService.getOrSet(cacheKey, 300, async () => {
-      const snapshots = await prisma.leaderboardSnapshot.findMany({
-        where: { seasonId },
-        orderBy: { seasonExp: "desc" },
-        take: limit,
-      });
+    const cached = await cacheService.getOrSet(cacheKey, 300, async () => {
+      try {
+        const snapshots = await prisma.leaderboardSnapshot.findMany({
+          where: { seasonId },
+          orderBy: { seasonExp: "desc" },
+          take: 100, // Always fetch max 100 from DB
+        });
 
-      const data: LeaderboardEntry[] = snapshots.map((snapshot, index) => ({
-        rank: index + 1,
-        playerAddress: snapshot.playerAddress,
-        seasonExp: snapshot.seasonExp,
-        battleWins: snapshot.battleWins,
-      }));
+        const data: LeaderboardEntry[] = snapshots.map((snapshot, index) => ({
+          rank: index + 1,
+          playerAddress: snapshot.playerAddress,
+          seasonExp: snapshot.seasonExp,
+          battleWins: snapshot.battleWins,
+        }));
 
-      return {
-        data,
-        updatedAt: new Date().toISOString(),
-      };
+        return {
+          data,
+          cachedAt: new Date().toISOString(),
+        };
+      } catch (error) {
+        logger.error({ error }, "leaderboard getRanked DB error");
+        return {
+          data: [],
+          cachedAt: new Date().toISOString(),
+        };
+      }
     });
+
+    // Slice to requested limit after retrieval from cache
+    return {
+      data: cached.data.slice(0, limit),
+      cachedAt: cached.cachedAt,
+    };
   }
 
   /**
    * Get guild leaderboard (sorted by warWins).
    * Uses read-through cache with 5min TTL.
    *
-   * @param limit - Maximum number of guilds to return (no upper bound enforced here)
-   * @returns Guild leaderboard data with updatedAt timestamp
+   * @param limit - Maximum number of guilds to return
+   * @returns Guild leaderboard data with cachedAt timestamp
    */
   async getGuilds(limit: number): Promise<LeaderboardResponse<GuildEntry>> {
     const cacheKey = "leaderboard:guilds";
 
-    return cacheService.getOrSet(cacheKey, 300, async () => {
-      const guilds = await prisma.guild.findMany({
-        orderBy: { warWins: "desc" },
-        take: limit,
-      });
+    const cached = await cacheService.getOrSet(cacheKey, 300, async () => {
+      try {
+        const guilds = await prisma.guild.findMany({
+          orderBy: { warWins: "desc" },
+          take: 100, // Always fetch max 100 from DB
+        });
 
-      const data: GuildEntry[] = guilds.map((guild, index) => ({
-        rank: index + 1,
-        guildId: guild.id,
-        name: guild.name,
-        warWins: guild.warWins,
-        memberCount: guild.memberCount,
-      }));
+        const data: GuildEntry[] = guilds.map((guild, index) => ({
+          rank: index + 1,
+          guildId: guild.id,
+          name: guild.name,
+          warWins: guild.warWins,
+          memberCount: guild.memberCount,
+        }));
 
-      return {
-        data,
-        updatedAt: new Date().toISOString(),
-      };
+        return {
+          data,
+          cachedAt: new Date().toISOString(),
+        };
+      } catch (error) {
+        logger.error({ error }, "leaderboard getGuilds DB error");
+        return {
+          data: [],
+          cachedAt: new Date().toISOString(),
+        };
+      }
     });
+
+    // Slice to requested limit after retrieval from cache
+    return {
+      data: cached.data.slice(0, limit),
+      cachedAt: cached.cachedAt,
+    };
   }
 
   /**
    * Get crafter leaderboard (sorted by craftCount).
    * Uses read-through cache with 5min TTL.
    *
-   * @param limit - Maximum number of entries to return (no upper bound enforced here)
-   * @returns Crafter leaderboard data with updatedAt timestamp
+   * @param limit - Maximum number of entries to return
+   * @returns Crafter leaderboard data with cachedAt timestamp
    */
   async getCrafters(
     limit: number,
   ): Promise<LeaderboardResponse<CrafterEntry>> {
     const cacheKey = "leaderboard:crafters";
 
-    return cacheService.getOrSet(cacheKey, 300, async () => {
-      const snapshots = await prisma.leaderboardSnapshot.findMany({
-        orderBy: { craftCount: "desc" },
-        take: limit,
-      });
+    const cached = await cacheService.getOrSet(cacheKey, 300, async () => {
+      try {
+        const snapshots = await prisma.leaderboardSnapshot.findMany({
+          orderBy: { craftCount: "desc" },
+          take: 100, // Always fetch max 100 from DB
+        });
 
-      const data: CrafterEntry[] = snapshots.map((snapshot, index) => ({
-        rank: index + 1,
-        playerAddress: snapshot.playerAddress,
-        craftCount: snapshot.craftCount,
-      }));
+        const data: CrafterEntry[] = snapshots.map((snapshot, index) => ({
+          rank: index + 1,
+          playerAddress: snapshot.playerAddress,
+          craftCount: snapshot.craftCount,
+        }));
 
-      return {
-        data,
-        updatedAt: new Date().toISOString(),
-      };
+        return {
+          data,
+          cachedAt: new Date().toISOString(),
+        };
+      } catch (error) {
+        logger.error({ error }, "leaderboard getCrafters DB error");
+        return {
+          data: [],
+          cachedAt: new Date().toISOString(),
+        };
+      }
     });
+
+    // Slice to requested limit after retrieval from cache
+    return {
+      data: cached.data.slice(0, limit),
+      cachedAt: cached.cachedAt,
+    };
   }
 }
 
