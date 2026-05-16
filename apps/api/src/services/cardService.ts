@@ -13,7 +13,7 @@
 import { cacheService } from "./cacheService";
 import { publicClient } from "../config/viem";
 import { logger } from "../config/logger";
-import { NotFoundError } from "../lib/errors";
+import { NotFoundError, ApiError } from "../lib/errors";
 import {
   cardRegistryAbi,
   ammMarketplaceAbi,
@@ -33,8 +33,8 @@ export interface CardTemplate {
   defBase: number;
   spdBase: number;
   hpBase: number;
-  supplyCap: number;
-  minted: number;
+  supplyCap: string; // uint256 as string (prevent precision loss)
+  minted: string; // uint256 as string (prevent precision loss)
   active: boolean;
 }
 
@@ -56,6 +56,7 @@ export interface CardListResult {
 // Constants
 // ============================================================================
 
+// Cache key for full card list. To force-refresh: await cacheService.del("cards:all")
 const CARDS_ALL_CACHE_KEY = "cards:all";
 const CARDS_ALL_CACHE_TTL = 86400; // 24 hours
 
@@ -76,7 +77,8 @@ function getCardCacheKey(cardId: number): string {
 }
 
 /**
- * Convert on-chain CardTemplate (with BigInts) to plain object with numbers.
+ * Convert on-chain CardTemplate (with BigInts) to plain object with numbers/strings.
+ * uint256 fields (supplyCap, minted) are converted to strings to prevent precision loss.
  */
 function normalizeCardTemplate(template: any): CardTemplate {
   return {
@@ -87,8 +89,8 @@ function normalizeCardTemplate(template: any): CardTemplate {
     defBase: Number(template.defBase),
     spdBase: Number(template.spdBase),
     hpBase: Number(template.hpBase),
-    supplyCap: Number(template.supplyCap),
-    minted: Number(template.minted),
+    supplyCap: template.supplyCap.toString(),
+    minted: template.minted.toString(),
     active: template.active === true || template.active === 1,
   };
 }
@@ -123,9 +125,7 @@ async function fetchCardTemplatesBatch(
   cardRegistry: `0x${string}`,
   cardIds: number[],
 ): Promise<(CardTemplate | null)[]> {
-  const promises = cardIds.map((id) =>
-    fetchCardTemplate(cardRegistry, id).catch(() => null),
-  );
+  const promises = cardIds.map((id) => fetchCardTemplate(cardRegistry, id));
   return Promise.all(promises);
 }
 
@@ -141,20 +141,23 @@ async function fetchCardTemplatesBatch(
  *   1. Fetch total pool count from ammMarketplace
  *   2. Fetch all card templates in parallel (batches of 20)
  *   3. Filter out inactive cards
- *   4. Return normalized templates
+ *   4. Return normalized templates with cachedAt timestamp
  *
  * On any error: logs and returns empty array (graceful degradation).
  *
- * @returns Array of active CardTemplate objects
+ * @returns Tuple of [Array of active CardTemplate objects, ISO 8601 timestamp of when cache was populated]
  */
-export async function getAllTemplates(): Promise<CardTemplate[]> {
+export async function getAllTemplates(): Promise<
+  [CardTemplate[], string]
+> {
   try {
     // Try cache first
-    const cached = await cacheService.get<CardTemplate[]>(
-      CARDS_ALL_CACHE_KEY,
-    );
+    const cached = await cacheService.get<{
+      templates: CardTemplate[];
+      cachedAt: string;
+    }>(CARDS_ALL_CACHE_KEY);
     if (cached !== null) {
-      return cached;
+      return [cached.templates, cached.cachedAt];
     }
 
     // Cache miss — fetch from contracts
@@ -164,7 +167,7 @@ export async function getAllTemplates(): Promise<CardTemplate[]> {
 
     if (!cardRegistry || !ammMarketplace) {
       logger.error("Contract addresses not configured");
-      return [];
+      return [[], new Date().toISOString()];
     }
 
     // Get total card count
@@ -177,13 +180,18 @@ export async function getAllTemplates(): Promise<CardTemplate[]> {
       });
     } catch (error) {
       logger.error({ error }, "Failed to fetch totalPools from ammMarketplace");
-      return [];
+      return [[], new Date().toISOString()];
     }
 
     const total = Number(totalPools);
+    const cachedAt = new Date().toISOString();
     if (total === 0) {
-      await cacheService.set(CARDS_ALL_CACHE_KEY, [], CARDS_ALL_CACHE_TTL);
-      return [];
+      await cacheService.set(
+        CARDS_ALL_CACHE_KEY,
+        { templates: [], cachedAt },
+        CARDS_ALL_CACHE_TTL,
+      );
+      return [[], cachedAt];
     }
 
     // Generate card IDs (1-indexed)
@@ -202,17 +210,17 @@ export async function getAllTemplates(): Promise<CardTemplate[]> {
       (t): t is CardTemplate => t !== null && t.active === true,
     );
 
-    // Cache the result
+    // Cache the result with timestamp
     await cacheService.set(
       CARDS_ALL_CACHE_KEY,
-      activeTemplates,
+      { templates: activeTemplates, cachedAt },
       CARDS_ALL_CACHE_TTL,
     );
 
-    return activeTemplates;
+    return [activeTemplates, cachedAt];
   } catch (error) {
     logger.error({ error }, "cardService getAllTemplates error");
-    return [];
+    return [[], new Date().toISOString()];
   }
 }
 
@@ -231,7 +239,7 @@ export async function getCardList(
   pageSize: number,
   rarity?: number,
 ): Promise<CardListResult> {
-  const allTemplates = await getAllTemplates();
+  const [allTemplates, cachedAt] = await getAllTemplates();
 
   // Filter by rarity if provided
   let filtered = allTemplates;
@@ -250,7 +258,7 @@ export async function getCardList(
     total,
     page,
     pageSize,
-    cachedAt: new Date().toISOString(),
+    cachedAt,
   };
 }
 
@@ -332,7 +340,7 @@ export async function getCardDetail(cardId: number): Promise<CardDetail> {
       throw error;
     }
 
-    // Check for on-chain "not found" style errors
+    // Check for on-chain "not found" style errors (contract reverts)
     const errorMessage = String(error).toLowerCase();
     if (
       errorMessage.includes("revert") ||
@@ -342,7 +350,8 @@ export async function getCardDetail(cardId: number): Promise<CardDetail> {
       throw new NotFoundError("Card not found");
     }
 
+    // Infrastructure error (RPC down, timeout, network) — don't disguise as 404
     logger.error({ cardId, error }, "cardService getCardDetail error");
-    throw new NotFoundError("Card not found");
+    throw new ApiError(500, "INTERNAL", "Failed to fetch card data");
   }
 }

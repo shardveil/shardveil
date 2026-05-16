@@ -11,7 +11,6 @@ import { Hono } from "hono";
 
 import { ValidationError } from "../lib/errors";
 import {
-  getAllTemplates,
   getCardList,
   getCardDetail,
   type CardListResult,
@@ -123,19 +122,14 @@ function parseLimit(value: string | undefined): number {
  * Returns: CardListResult with paginated data and cached timestamp
  */
 cardsRouter.get("/", async (c) => {
-  try {
-    const rarity = parseRarity(c.req.query("rarity"));
-    const page = parsePage(c.req.query("page"));
-    const pageSize = parsePageSize(c.req.query("pageSize"));
+  const rarity = parseRarity(c.req.query("rarity"));
+  const page = parsePage(c.req.query("page"));
+  const pageSize = parsePageSize(c.req.query("pageSize"));
 
-    const result = await getCardList(page, pageSize, rarity);
+  const result = await getCardList(page, pageSize, rarity);
 
-    c.header("Cache-Control", "public, max-age=60");
-    return c.json(result);
-  } catch (error) {
-    // ValidationError is caught by error handler
-    throw error;
-  }
+  c.header("Cache-Control", "public, max-age=60");
+  return c.json(result);
 });
 
 // ============================================================================
@@ -153,21 +147,16 @@ cardsRouter.get("/", async (c) => {
  * Throws: NotFoundError if card not found or inactive
  */
 cardsRouter.get("/:cardId", async (c) => {
-  try {
-    const cardId = parsePositiveInt(c.req.param("cardId"), "cardId");
+  const cardId = parsePositiveInt(c.req.param("cardId"), "cardId");
 
-    if (cardId === undefined) {
-      throw new ValidationError("cardId is required");
-    }
-
-    const detail = await getCardDetail(cardId);
-
-    c.header("Cache-Control", "public, max-age=300");
-    return c.json(detail);
-  } catch (error) {
-    // NotFoundError and ValidationError are caught by error handler
-    throw error;
+  if (cardId === undefined) {
+    throw new ValidationError("cardId is required");
   }
+
+  const detail = await getCardDetail(cardId);
+
+  c.header("Cache-Control", "public, max-age=300");
+  return c.json(detail);
 });
 
 // ============================================================================
@@ -186,25 +175,20 @@ cardsRouter.get("/:cardId", async (c) => {
  * Returns: { data: [], total: 0 }
  */
 cardsRouter.get("/:cardId/holders", async (c) => {
-  try {
-    const cardId = parsePositiveInt(c.req.param("cardId"), "cardId");
-    const limit = parseLimit(c.req.query("limit"));
+  const cardId = parsePositiveInt(c.req.param("cardId"), "cardId");
 
-    if (cardId === undefined) {
-      throw new ValidationError("cardId is required");
-    }
-
-    // Verify card exists (indexer stub, no real data)
-    await getCardDetail(cardId);
-
-    c.header("Cache-Control", "public, max-age=60");
-    return c.json({
-      data: [],
-      total: 0,
-    });
-  } catch (error) {
-    throw error;
+  if (cardId === undefined) {
+    throw new ValidationError("cardId is required");
   }
+
+  // Verify card exists (indexer stub, no real data)
+  await getCardDetail(cardId);
+
+  c.header("Cache-Control", "public, max-age=60");
+  return c.json({
+    data: [],
+    total: 0,
+  });
 });
 
 // ============================================================================
@@ -223,29 +207,25 @@ cardsRouter.get("/:cardId/holders", async (c) => {
  * Returns: { data: [] }
  */
 cardsRouter.get("/:cardId/price-history", async (c) => {
-  try {
-    const cardId = parsePositiveInt(c.req.param("cardId"), "cardId");
-    const range = c.req.query("range") || "24h";
+  const cardId = parsePositiveInt(c.req.param("cardId"), "cardId");
+  const range = c.req.query("range") || "24h";
 
-    if (cardId === undefined) {
-      throw new ValidationError("cardId is required");
-    }
-
-    // Validate range parameter
-    if (!["24h", "7d", "30d"].includes(range)) {
-      throw new ValidationError("range must be one of: 24h, 7d, 30d");
-    }
-
-    // Verify card exists (stub for price history, no real data)
-    await getCardDetail(cardId);
-
-    c.header("Cache-Control", "public, max-age=60");
-    return c.json({
-      data: [],
-    });
-  } catch (error) {
-    throw error;
+  if (cardId === undefined) {
+    throw new ValidationError("cardId is required");
   }
+
+  // Validate range parameter
+  if (!["24h", "7d", "30d"].includes(range)) {
+    throw new ValidationError("range must be one of: 24h, 7d, 30d");
+  }
+
+  // Verify card exists (stub for price history, no real data)
+  await getCardDetail(cardId);
+
+  c.header("Cache-Control", "public, max-age=60");
+  return c.json({
+    data: [],
+  });
 });
 
 export { cardsRouter };
