@@ -15,6 +15,9 @@ import { authRouter } from "./routes/auth";
 import { profileRouter } from "./routes/profile";
 import { cardsRouter } from "./routes/cards";
 import { leaderboardRouter } from "./routes/leaderboard";
+import { getAddresses, ARBITRUM_SEPOLIA_CHAIN_ID } from "@shardveil/contracts";
+
+const VERSION = process.env["npm_package_version"] ?? "0.0.1";
 
 const app = new Hono();
 
@@ -47,33 +50,39 @@ app.get("/health", async (c) => {
   const [dbResult, redisResult, rpcResult] = await Promise.allSettled([
     prisma.$queryRaw`SELECT 1`,
     cacheService.ping(),
-    Promise.race([
-      publicClient.getBlockNumber(),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("RPC timeout")), 5000),
-      ),
-    ]),
+    new Promise<bigint>((resolve, reject) => {
+      const timeoutId = setTimeout(() => reject(new Error("RPC timeout")), 5000);
+      publicClient.getBlockNumber()
+        .then((n) => { clearTimeout(timeoutId); resolve(n); })
+        .catch((e) => { clearTimeout(timeoutId); reject(e as Error); });
+    }),
   ]);
 
   const database = dbResult.status === "fulfilled" ? "ok" : "down";
-  const redis_status = redisResult.status === "fulfilled" && redisResult.value === true ? "ok" : "down";
+  const redisStatus = redisResult.status === "fulfilled" && redisResult.value === true ? "ok" : "down";
   const rpc = rpcResult.status === "fulfilled" ? "ok" : "down";
-  const allOk = database === "ok" && redis_status === "ok" && rpc === "ok";
+  const allOk = database === "ok" && redisStatus === "ok" && rpc === "ok";
 
   return c.json(
     {
       status: allOk ? "ok" : "degraded",
       uptime: process.uptime(),
-      version: process.env["npm_package_version"] ?? "0.0.1",
-      services: { database, redis: redis_status, rpc },
+      version: VERSION,
+      services: { database, redis: redisStatus, rpc },
     },
     allOk ? 200 : 503,
   );
 });
 
 const server = serve({ fetch: app.fetch, port: env.PORT }, () => {
+  const addresses = getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID);
   logger.info(
-    { port: env.PORT, env: env.NODE_ENV, version: process.env["npm_package_version"] ?? "0.0.1" },
+    {
+      port: env.PORT,
+      env: env.NODE_ENV,
+      version: VERSION,
+      contracts: addresses,
+    },
     "ShardVeil API started",
   );
 });
@@ -81,13 +90,28 @@ const server = serve({ fetch: app.fetch, port: env.PORT }, () => {
 // Graceful shutdown
 async function shutdown(signal: string) {
   logger.info({ signal }, "Shutting down gracefully...");
+  const forceExit = setTimeout(() => {
+    logger.warn("Forced shutdown after timeout");
+    process.exit(1);
+  }, 10_000).unref();
+
+  if ("closeAllConnections" in server) {
+    (server as { closeAllConnections: () => void }).closeAllConnections();
+  }
+
   server.close(async () => {
-    await Promise.allSettled([
-      prisma.$disconnect(),
-      redis.quit(),
-    ]);
-    logger.info("Shutdown complete");
-    process.exit(0);
+    clearTimeout(forceExit);
+    try {
+      await Promise.allSettled([
+        prisma.$disconnect(),
+        redis.quit(),
+      ]);
+      logger.info("Shutdown complete");
+      process.exit(0);
+    } catch {
+      logger.error("Error during shutdown cleanup");
+      process.exit(1);
+    }
   });
 }
 
