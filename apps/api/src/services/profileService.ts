@@ -6,10 +6,10 @@
  *   - profile:{address} → ProfileData, TTL 5min (300s)
  */
 
-import { cacheService } from "./cacheService";
 import { prisma } from "../config/database";
 import { logger } from "../config/logger";
-import { ApiError, ValidationError, NotFoundError } from "../lib/errors";
+import { ApiError, NotFoundError, ValidationError } from "../lib/errors";
+import { cacheService } from "./cacheService";
 
 // ============================================================================
 // Types
@@ -28,10 +28,10 @@ export interface ProfileData {
 }
 
 export interface ProfileUpdateInput {
-  bio?: string;
-  twitterHandle?: string;
-  discordHandle?: string;
-  isPrivate?: boolean;
+  bio?: string | undefined;
+  twitterHandle?: string | undefined;
+  discordHandle?: string | undefined;
+  isPrivate?: boolean | undefined;
 }
 
 // ============================================================================
@@ -153,9 +153,15 @@ export async function updateProfile(
       where: { address },
       data: {
         ...(updates.bio !== undefined && { bio: updates.bio }),
-        ...(updates.twitterHandle !== undefined && { twitterHandle: updates.twitterHandle }),
-        ...(updates.discordHandle !== undefined && { discordHandle: updates.discordHandle }),
-        ...(updates.isPrivate !== undefined && { isPrivate: updates.isPrivate }),
+        ...(updates.twitterHandle !== undefined && {
+          twitterHandle: updates.twitterHandle,
+        }),
+        ...(updates.discordHandle !== undefined && {
+          discordHandle: updates.discordHandle,
+        }),
+        ...(updates.isPrivate !== undefined && {
+          isPrivate: updates.isPrivate,
+        }),
       },
     });
 

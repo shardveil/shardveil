@@ -22,6 +22,19 @@ services:
       - shardveil-network
     restart: "no"
 
+  postgres-test:
+    image: postgres:16
+    container_name: shardveil-postgres-test
+    environment:
+      POSTGRES_USER: shardveil
+      POSTGRES_PASSWORD: shardveil
+      POSTGRES_DB: shardveil_test
+    ports:
+      - "127.0.0.1:5433:5432"
+    networks:
+      - shardveil-network
+    restart: "no"
+
   redis:
     image: redis:7-alpine
     container_name: shardveil-redis
