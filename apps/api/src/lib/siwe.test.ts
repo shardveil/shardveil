@@ -9,7 +9,7 @@
  * 3. Tampered messages fail verification
  */
 
-import { privateKeyToAccount, signMessage } from "viem/accounts";
+import { privateKeyToAccount } from "viem/accounts";
 
 import {
   buildMessage,
@@ -48,11 +48,8 @@ async function runTests() {
     console.log("  ✓ Domain:", domain);
     console.log("  ✓ Built message (" + message.length + " bytes)");
 
-    // Sign the message
-    const signature = await signMessage({
-      account: testAccount,
-      message,
-    });
+    // Sign the message using account's signMessage method
+    const signature = await testAccount.signMessage({ message });
     console.log("  ✓ Signed message:", signature.substring(0, 20) + "...");
 
     // Verify the signature
@@ -122,10 +119,7 @@ async function runTests() {
     );
 
     // Sign the original message
-    const signature = await signMessage({
-      account: testAccount,
-      message,
-    });
+    const signature = await testAccount.signMessage({ message });
     console.log("  ✓ Signed original message");
 
     // Tamper with the message (change the nonce)
