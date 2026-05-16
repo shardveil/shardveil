@@ -82,25 +82,13 @@ leaderboardRouter.get("/guilds", async (c) => {
 // ---------------------------------------------------------------------------
 
 /**
- * Get crafter leaderboard for a season sorted by craftCount.
+ * Get crafter leaderboard sorted by craftCount.
  *
  * Query params:
- * - seasonId (required): positive integer for the season
  * - limit (optional): max entries to return, clamped to 100
  */
 leaderboardRouter.get("/crafters", async (c) => {
-  const seasonIdStr = c.req.query("seasonId");
   const limitStr = c.req.query("limit");
-
-  // Validate seasonId
-  if (!seasonIdStr) {
-    throw new ValidationError("seasonId must be a positive integer");
-  }
-
-  const seasonId = parseInt(seasonIdStr, 10);
-  if (isNaN(seasonId) || seasonId <= 0) {
-    throw new ValidationError("seasonId must be a positive integer");
-  }
 
   // Parse and clamp limit
   let limit = 100; // default
@@ -111,7 +99,7 @@ leaderboardRouter.get("/crafters", async (c) => {
     }
   }
 
-  const result = await leaderboardService.getCrafters(seasonId, limit);
+  const result = await leaderboardService.getCrafters(limit);
   return c.json(result);
 });
 

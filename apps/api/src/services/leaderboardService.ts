@@ -4,7 +4,7 @@
  * Three endpoints:
  * - getRanked(seasonId, limit)    → Ranked by seasonExp
  * - getGuilds(limit)              → Ranked by warWins
- * - getCrafters(seasonId, limit)  → Ranked by craftCount
+ * - getCrafters(limit)            → Ranked by craftCount
  */
 
 import { prisma } from "../config/database";
@@ -116,22 +116,19 @@ class LeaderboardService {
   }
 
   /**
-   * Get crafter leaderboard for a season (sorted by craftCount).
+   * Get crafter leaderboard (sorted by craftCount).
    * Uses read-through cache with 5min TTL.
    *
-   * @param seasonId - Season to fetch
    * @param limit - Maximum number of entries to return (no upper bound enforced here)
    * @returns Crafter leaderboard data with updatedAt timestamp
    */
   async getCrafters(
-    seasonId: number,
     limit: number,
   ): Promise<LeaderboardResponse<CrafterEntry>> {
-    const cacheKey = `leaderboard:crafters:${seasonId}`;
+    const cacheKey = "leaderboard:crafters";
 
     return cacheService.getOrSet(cacheKey, 300, async () => {
       const snapshots = await prisma.leaderboardSnapshot.findMany({
-        where: { seasonId },
         orderBy: { craftCount: "desc" },
         take: limit,
       });
