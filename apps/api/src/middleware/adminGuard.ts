@@ -18,7 +18,7 @@ import {
 import { logger } from "../config/logger";
 import { publicClient } from "../config/viem";
 import { cacheService } from "../services/cacheService";
-import { ForbiddenError } from "../lib/errors";
+import { ForbiddenError, UnauthorizedError } from "../lib/errors";
 
 /**
  * Map of contract names to their ABIs and addresses.
@@ -48,17 +48,16 @@ const WELL_KNOWN_ROLES = new Set([
   "MINTER_ROLE",
   "UPGRADER_ROLE",
   "PROTOCOL_ROLE",
-  "LP_FEE_BPS",
 ]);
 
 /**
- * Check if a string is a valid bytes32 hex value (starts with 0x).
+ * Check if a string is a valid bytes32 hex value.
  *
  * @param value — string to check
- * @returns true if value is a raw hex bytes32, false if it's a role name
+ * @returns true if value is a valid 32-byte hex (0x + 64 hex digits), false otherwise
  */
 function isRawHex(value: string): boolean {
-  return value.startsWith("0x");
+  return /^0x[0-9a-fA-F]{64}$/.test(value);
 }
 
 /**
@@ -165,7 +164,7 @@ export const requireRole = (
     // Get authenticated address from context
     const address = c.get("address");
     if (!address) {
-      throw new ForbiddenError("Not authenticated");
+      throw new UnauthorizedError("Not authenticated");
     }
 
     // Validate contract name
@@ -184,7 +183,10 @@ export const requireRole = (
         // Raw hex role hash — use as-is
         roleHash = role as `0x${string}`;
       } else {
-        // Well-known role name — resolve from contract
+        // Well-known role name — enforce allowlist and resolve from contract
+        if (!WELL_KNOWN_ROLES.has(role)) {
+          throw new ForbiddenError("Unknown role");
+        }
         roleHash = await cacheService.getOrSet(
           `admin:rolehash:${contractName}:${role}`,
           3600, // 1 hour — role hashes never change
