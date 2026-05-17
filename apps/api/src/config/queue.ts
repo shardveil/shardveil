@@ -1,10 +1,11 @@
 /**
- * BullMQ Queue definitions — Task 4.6
+ * BullMQ Queue definitions — Task 4.6 / 4.10
  *
  * Exports queue name constants and Queue instances for:
  *   - battle-timers   : per-turn deadline jobs
  *   - settlement      : on-chain settlement signing
  *   - xp-grants       : XP award jobs after match resolution
+ *   - tournament      : bracket generation, round advancement, finalization
  */
 
 import { Queue } from "bullmq";
@@ -19,6 +20,7 @@ import { logger } from "./logger";
 export const BATTLE_TIMER_QUEUE = "battle-timers";
 export const SETTLEMENT_QUEUE = "settlement";
 export const XP_GRANTS_QUEUE = "xp-grants";
+export const TOURNAMENT_QUEUE = "tournament";
 
 // ---------------------------------------------------------------------------
 // Shared BullMQ connection options
@@ -69,8 +71,26 @@ export const xpGrantsQueue = new Queue(XP_GRANTS_QUEUE, {
   },
 });
 
+export const tournamentQueue = new Queue(TOURNAMENT_QUEUE, {
+  connection: bullConnection,
+  defaultJobOptions: {
+    removeOnComplete: 100,
+    removeOnFail: 500,
+    attempts: 3,
+    backoff: {
+      type: "exponential",
+      delay: 10_000, // 10 s → 30 s → 90 s
+    },
+  },
+});
+
 // Log queue errors
-for (const queue of [battleTimerQueue, settlementQueue, xpGrantsQueue]) {
+for (const queue of [
+  battleTimerQueue,
+  settlementQueue,
+  xpGrantsQueue,
+  tournamentQueue,
+]) {
   queue.on("error", (err) => {
     logger.error(
       { queue: queue.name, error: err.message },

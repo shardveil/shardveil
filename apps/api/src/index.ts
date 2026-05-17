@@ -1,4 +1,5 @@
 import "./workers/battleTimer"; // side-effect: starts the BullMQ battle timer worker
+import "./workers/tournamentWorker"; // side-effect: starts the BullMQ tournament worker
 
 import { serve } from "@hono/node-server";
 import { ARBITRUM_SEPOLIA_CHAIN_ID, getAddresses } from "@shardveil/contracts";
@@ -10,6 +11,7 @@ import { logger } from "./config/logger";
 import { redis } from "./config/redis";
 import { shutdown as shutdownIndexer } from "./workers/eventIndexer"; // side-effect: starts the viem event indexer
 import { shutdown as shutdownSettlementSigner } from "./workers/settlementSigner"; // side-effect: starts the settlement signer worker
+import { shutdown as shutdownTournamentWorker } from "./workers/tournamentWorker"; // side-effect: already imported above
 import { shutdown as shutdownVrfWatcher } from "./workers/vrfWatcher"; // side-effect: starts the PackFulfilled VRF watcher
 import { createWsApp } from "./ws/wsServer";
 
@@ -53,6 +55,7 @@ async function shutdown(signal: string) {
     try {
       shutdownIndexer(signal);
       shutdownSettlementSigner();
+      shutdownTournamentWorker();
       shutdownVrfWatcher();
       await Promise.allSettled([prisma.$disconnect(), redis.quit()]);
       logger.info("Shutdown complete");
