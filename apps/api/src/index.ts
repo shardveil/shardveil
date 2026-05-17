@@ -1,5 +1,4 @@
 import "./workers/battleTimer"; // side-effect: starts the BullMQ battle timer worker
-import "./workers/eventIndexer"; // side-effect: starts the viem event indexer
 
 import { serve } from "@hono/node-server";
 import { ARBITRUM_SEPOLIA_CHAIN_ID, getAddresses } from "@shardveil/contracts";
@@ -9,6 +8,7 @@ import { prisma } from "./config/database";
 import { env } from "./config/env";
 import { logger } from "./config/logger";
 import { redis } from "./config/redis";
+import { shutdown as shutdownIndexer } from "./workers/eventIndexer"; // side-effect: starts the viem event indexer
 import { createWsApp } from "./ws/wsServer";
 
 const VERSION = process.env["npm_package_version"] ?? "0.0.1";
@@ -49,6 +49,7 @@ async function shutdown(signal: string) {
   server.close(async () => {
     clearTimeout(forceExit);
     try {
+      shutdownIndexer(signal);
       await Promise.allSettled([prisma.$disconnect(), redis.quit()]);
       logger.info("Shutdown complete");
       process.exit(0);

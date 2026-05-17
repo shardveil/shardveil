@@ -12,7 +12,7 @@
  *   Refreshed every 30s.
  *
  * Graceful shutdown:
- *   On SIGTERM / SIGINT, all watchers are stopped and the process exits.
+ *   Call the exported `shutdown()` function (done by index.ts on SIGTERM/SIGINT).
  */
 
 import {
@@ -32,6 +32,7 @@ import {
 import { logger } from "../config/logger";
 import { redis } from "../config/redis";
 import { publicClient } from "../config/viem";
+import { extractAddresses } from "../lib/extractAddresses";
 import { indexerService } from "../services/indexerService";
 
 // ---------------------------------------------------------------------------
@@ -40,88 +41,21 @@ import { indexerService } from "../services/indexerService";
 
 const addresses = getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID);
 
-// Zero address constant (used to filter out mint/burn pseudo-addresses)
-const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-
 // ---------------------------------------------------------------------------
-// Address extractor helper
+// Contract names exported so that indexer-status.ts can stay in sync
 // ---------------------------------------------------------------------------
 
-/**
- * Given a contract name + event name + log args, return the list of player
- * addresses that should be notified.
- */
-function extractAddresses(
-  contractName: string,
-  eventName: string,
-  args: Record<string, unknown>,
-): string[] {
-  const addr = (v: unknown): string | null => {
-    if (typeof v === "string" && v !== ZERO_ADDRESS) return v;
-    return null;
-  };
-
-  switch (`${contractName}:${eventName}`) {
-    case "packContract:PackFulfilled": {
-      const a = addr(args["player"] ?? args["buyer"]);
-      return a ? [a] : [];
-    }
-    case "battleEngine:MatchSettled": {
-      const a = addr(args["winner"]);
-      return a ? [a] : [];
-    }
-    case "craftingEngine:FusionCrafted": {
-      const a = addr(args["player"]);
-      return a ? [a] : [];
-    }
-    case "ammMarketplace:CardBought": {
-      const a = addr(args["buyer"]);
-      return a ? [a] : [];
-    }
-    case "ammMarketplace:CardSold": {
-      const a = addr(args["seller"]);
-      return a ? [a] : [];
-    }
-    case "ammMarketplace:LiquidityAdded":
-    case "ammMarketplace:LiquidityRemoved": {
-      const a = addr(args["provider"]);
-      return a ? [a] : [];
-    }
-    case "guildSystem:GuildCreated": {
-      const a = addr(args["master"]);
-      return a ? [a] : [];
-    }
-    case "guildSystem:MemberJoined":
-    case "guildSystem:MemberLeft": {
-      const a = addr(args["member"]);
-      return a ? [a] : [];
-    }
-    case "guildSystem:GuildWarResult":
-    case "treasury:BuybackTriggered": {
-      return [];
-    }
-    case "veilToken:Transfer":
-    case "shardToken:Transfer": {
-      const results: string[] = [];
-      const f = addr(args["from"]);
-      const t = addr(args["to"]);
-      if (f) results.push(f);
-      if (t) results.push(t);
-      return results;
-    }
-    case "cardNFT:TransferSingle":
-    case "cardNFT:TransferBatch": {
-      const results: string[] = [];
-      const f = addr(args["from"]);
-      const t = addr(args["to"]);
-      if (f) results.push(f);
-      if (t) results.push(t);
-      return results;
-    }
-    default:
-      return [];
-  }
-}
+export const INDEXED_CONTRACT_NAMES = [
+  "packContract",
+  "battleEngine",
+  "craftingEngine",
+  "ammMarketplace",
+  "guildSystem",
+  "treasury",
+  "veilToken",
+  "shardToken",
+  "cardNFT",
+] as const;
 
 // ---------------------------------------------------------------------------
 // Watcher setup
@@ -132,21 +66,35 @@ const unwatchers: Array<() => void> = [];
 
 /**
  * Generic helper to set up a watcher for a single contract event.
+ * Returns early (with a no-op unwatch) if the event cannot be found in the ABI.
  */
 function watchEvent<TAbi extends readonly unknown[]>(params: {
   contractName: string;
   eventName: string;
   address: `0x${string}`;
   abi: TAbi;
-  eventAbi: TAbi[number];
 }): void {
-  const { contractName, eventName, address, abi, eventAbi } = params;
+  const { contractName, eventName, address, abi } = params;
+
+  const abiItem = (
+    abi as unknown as Array<{ name?: string; type?: string }>
+  ).find((e) => e.name === eventName && e.type === "event");
+
+  if (!abiItem) {
+    logger.error(
+      { contractName, eventName },
+      "eventIndexer: event not found in ABI, skipping",
+    );
+    return;
+  }
 
   const unwatch = publicClient.watchContractEvent({
     address,
     abi,
     eventName: eventName as never,
     onLogs: async (logs) => {
+      let maxBlock = 0n;
+
       for (const log of logs as Array<
         (typeof logs)[number] & { args?: Record<string, unknown> }
       >) {
@@ -163,11 +111,6 @@ function watchEvent<TAbi extends readonly unknown[]>(params: {
             data: args,
             affectedAddresses: extractAddresses(contractName, eventName, args),
           });
-
-          await redis.set(
-            `indexer:lastBlock:${contractName}`,
-            blockNum.toString(),
-          );
         } catch (err) {
           logger.error(
             {
@@ -179,6 +122,15 @@ function watchEvent<TAbi extends readonly unknown[]>(params: {
             "eventIndexer: failed to record event",
           );
         }
+
+        if (blockNum > maxBlock) maxBlock = blockNum;
+      }
+
+      if (maxBlock > 0n) {
+        await redis.set(
+          `indexer:lastBlock:${contractName}`,
+          maxBlock.toString(),
+        );
       }
     },
     onError: (err) => {
@@ -189,7 +141,6 @@ function watchEvent<TAbi extends readonly unknown[]>(params: {
     },
   });
 
-  void eventAbi; // suppress unused warning
   unwatchers.push(unwatch);
   logger.debug({ contractName, eventName }, "eventIndexer: watching event");
 }
@@ -204,9 +155,6 @@ watchEvent({
   eventName: "PackFulfilled",
   address: addresses.packContract,
   abi: packContractAbi,
-  eventAbi: packContractAbi.find(
-    (e) => (e as { name?: string }).name === "PackFulfilled",
-  )!,
 });
 
 // battleEngine — MatchSettled
@@ -215,9 +163,6 @@ watchEvent({
   eventName: "MatchSettled",
   address: addresses.battleEngine,
   abi: battleEngineAbi,
-  eventAbi: battleEngineAbi.find(
-    (e) => (e as { name?: string }).name === "MatchSettled",
-  )!,
 });
 
 // craftingEngine — FusionCrafted (spec calls it CardCrafted but ABI has FusionCrafted)
@@ -226,9 +171,6 @@ watchEvent({
   eventName: "FusionCrafted",
   address: addresses.craftingEngine,
   abi: craftingEngineAbi,
-  eventAbi: craftingEngineAbi.find(
-    (e) => (e as { name?: string }).name === "FusionCrafted",
-  )!,
 });
 
 // ammMarketplace — CardBought, CardSold, LiquidityAdded, LiquidityRemoved
@@ -241,9 +183,6 @@ watchEvent({
     eventName,
     address: addresses.ammMarketplace,
     abi: ammMarketplaceAbi,
-    eventAbi: ammMarketplaceAbi.find(
-      (e) => (e as { name?: string }).name === eventName,
-    )!,
   });
 });
 
@@ -257,9 +196,6 @@ watchEvent({
     eventName,
     address: addresses.guildSystem,
     abi: guildSystemAbi,
-    eventAbi: guildSystemAbi.find(
-      (e) => (e as { name?: string }).name === eventName,
-    )!,
   });
 });
 
@@ -269,9 +205,6 @@ watchEvent({
   eventName: "BuybackTriggered",
   address: addresses.treasury,
   abi: treasuryAbi,
-  eventAbi: treasuryAbi.find(
-    (e) => (e as { name?: string }).name === "BuybackTriggered",
-  )!,
 });
 
 // veilToken — Transfer
@@ -280,11 +213,6 @@ watchEvent({
   eventName: "Transfer",
   address: addresses.veilToken,
   abi: veilTokenAbi,
-  eventAbi: veilTokenAbi.find(
-    (e) =>
-      (e as { name?: string }).name === "Transfer" &&
-      (e as { type?: string }).type === "event",
-  )!,
 });
 
 // shardToken — Transfer
@@ -293,11 +221,6 @@ watchEvent({
   eventName: "Transfer",
   address: addresses.shardToken,
   abi: shardTokenAbi,
-  eventAbi: shardTokenAbi.find(
-    (e) =>
-      (e as { name?: string }).name === "Transfer" &&
-      (e as { type?: string }).type === "event",
-  )!,
 });
 
 // cardNFT — TransferSingle, TransferBatch
@@ -307,9 +230,6 @@ watchEvent({
     eventName,
     address: addresses.cardNFT,
     abi: cardNftAbi,
-    eventAbi: cardNftAbi.find(
-      (e) => (e as { name?: string }).name === eventName,
-    )!,
   });
 });
 
@@ -341,10 +261,10 @@ redis
   .catch(() => undefined);
 
 // ---------------------------------------------------------------------------
-// Graceful shutdown
+// Graceful shutdown — called by index.ts signal handlers
 // ---------------------------------------------------------------------------
 
-function shutdown(signal: string): void {
+export function shutdown(signal?: string): void {
   logger.info({ signal }, "eventIndexer: shutting down");
 
   clearInterval(heartbeatInterval);
@@ -356,9 +276,4 @@ function shutdown(signal: string): void {
       // ignore
     }
   }
-
-  process.exit(0);
 }
-
-process.on("SIGTERM", () => shutdown("SIGTERM"));
-process.on("SIGINT", () => shutdown("SIGINT"));

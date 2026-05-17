@@ -11,27 +11,11 @@
  *   - lag (currentBlock - lastBlock)
  */
 
-import { prisma } from "../src/config/database";
 import { redis } from "../src/config/redis";
 import { publicClient } from "../src/config/viem";
+import { INDEXED_CONTRACT_NAMES } from "../src/workers/eventIndexer";
 
-// ---------------------------------------------------------------------------
-// Contract names that are indexed (must match eventIndexer.ts)
-// ---------------------------------------------------------------------------
-
-const CONTRACT_NAMES = [
-  "packContract",
-  "battleEngine",
-  "craftingEngine",
-  "ammMarketplace",
-  "guildSystem",
-  "treasury",
-  "veilToken",
-  "shardToken",
-  "cardNFT",
-] as const;
-
-type ContractName = (typeof CONTRACT_NAMES)[number];
+type ContractName = (typeof INDEXED_CONTRACT_NAMES)[number];
 
 // ---------------------------------------------------------------------------
 // Main
@@ -43,7 +27,7 @@ async function main(): Promise<void> {
 
   // Fetch last indexed block for each contract from Redis
   const lastBlockValues = await Promise.all(
-    CONTRACT_NAMES.map((name) =>
+    INDEXED_CONTRACT_NAMES.map((name) =>
       redis.get(`indexer:lastBlock:${name}`).then((v) => ({ name, value: v })),
     ),
   );
@@ -105,5 +89,5 @@ main()
     process.exitCode = 1;
   })
   .finally(async () => {
-    await Promise.allSettled([prisma.$disconnect(), redis.quit()]);
+    await Promise.allSettled([redis.quit()]);
   });
