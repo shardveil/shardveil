@@ -1,4 +1,3 @@
-import { ARBITRUM_SEPOLIA_CHAIN_ID, getAddresses } from "@shardveil/contracts";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 
@@ -11,6 +10,7 @@ import { standardLimit } from "./middleware/rateLimit";
 import { authRouter } from "./routes/auth";
 import { cardsRouter } from "./routes/cards";
 import { leaderboardRouter } from "./routes/leaderboard";
+import { notificationRouter } from "./routes/notification";
 import { profileRouter } from "./routes/profile";
 import { cacheService } from "./services/cacheService";
 
@@ -39,6 +39,7 @@ app.route("/auth", authRouter);
 app.route("/profile", profileRouter);
 app.route("/cards", cardsRouter);
 app.route("/leaderboard", leaderboardRouter);
+app.route("/notifications", notificationRouter);
 
 app.get("/", (c) => c.text("ShardVeil API"));
 
@@ -79,7 +80,6 @@ app.get("/health", async (c) => {
       uptime: process.uptime(),
       version: VERSION,
       services: { database, redis: redisStatus, rpc },
-      contracts: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID),
     },
     allOk ? 200 : 503,
   );
