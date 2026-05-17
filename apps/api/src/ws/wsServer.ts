@@ -3,10 +3,17 @@ import { Hono } from "hono";
 
 import { logger } from "../config/logger";
 import type { Address } from "../config/viem";
+import {
+  cleanupPresence,
+  registerPresenceChannel,
+} from "./channels/presenceChannel";
 import { connectionManager } from "./connectionManager";
 import { messageRouter } from "./messageRouter";
 import { verifyWsToken, WS_CLOSE_UNAUTHORIZED } from "./middleware/wsAuth";
 import { cleanupRateLimit } from "./middleware/wsRateLimit";
+
+// Register all channel handlers at module load time.
+registerPresenceChannel();
 
 /** Ping interval in milliseconds. */
 const PING_INTERVAL_MS = 30_000;
@@ -168,6 +175,7 @@ export function createWsApp(): {
         onClose(_event, ws) {
           stopHeartbeat();
           cleanupRateLimit(ws);
+          cleanupPresence(ws);
           if (address !== null) {
             connectionManager.unregister(ws);
           }
