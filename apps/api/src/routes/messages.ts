@@ -59,14 +59,16 @@ messagesRouter.get("/:address", requireAuth, async (c) => {
     }
   }
 
-  const limit = Math.min(
-    MAX_LIMIT,
-    Math.max(1, limitParam ? parseInt(limitParam, 10) : DEFAULT_LIMIT),
-  );
-
-  if (limitParam && Number.isNaN(parseInt(limitParam, 10))) {
-    throw new ValidationError("Invalid `limit` parameter — expected integer");
+  const parsed = limitParam ? parseInt(limitParam, 10) : DEFAULT_LIMIT;
+  if (Number.isNaN(parsed)) {
+    return c.json(
+      {
+        error: { code: "VALIDATION_ERROR", message: "limit must be a number" },
+      },
+      400,
+    );
   }
+  const limit = Math.min(MAX_LIMIT, Math.max(1, parsed));
 
   // Fetch messages in both directions (A→B and B→A) between the two players
   const messages = await prisma.directMessage.findMany({

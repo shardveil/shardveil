@@ -201,11 +201,11 @@ async function checkChatRateLimit(
   roomId: string,
 ): Promise<boolean> {
   const key = `ws:chat:rl:${address}:${roomId}`;
-  const count = await redis.incr(key);
-  if (count === 1) {
-    // First message in this window — set TTL
-    await redis.expire(key, RATE_LIMIT_WINDOW_SECONDS);
-  }
+  const [[, count]] = (await redis
+    .multi()
+    .incr(key)
+    .expire(key, RATE_LIMIT_WINDOW_SECONDS)
+    .exec()) as [[null, number], [null, number]];
   return count <= 1;
 }
 
@@ -372,6 +372,7 @@ async function handleSend(
           senderId: address,
           receiverId,
           content: clean,
+          isModerated: flagged,
         },
       });
     } else if (roomType === "GUILD") {
@@ -381,6 +382,7 @@ async function handleSend(
           guildId,
           senderAddress: address,
           content: clean,
+          isModerated: flagged,
         },
       });
     } else {
@@ -390,6 +392,7 @@ async function handleSend(
           room: roomId,
           senderAddress: address,
           content: clean,
+          isModerated: flagged,
         },
       });
     }
@@ -419,11 +422,11 @@ async function handleSend(
 // TYPING handler
 // ---------------------------------------------------------------------------
 
-function handleTyping(
+async function handleTyping(
   socket: Socket,
   address: Address,
   payload: unknown,
-): void {
+): Promise<void> {
   const parsed = TypingPayloadSchema.safeParse(payload);
   if (!parsed.success) {
     safeSend(
@@ -437,6 +440,24 @@ function handleTyping(
   }
 
   const { roomId, isTyping } = parsed.data;
+
+  const roomType = classifyRoom(roomId);
+
+  // Guild: verify membership before broadcasting typing indicator
+  if (roomType === "GUILD") {
+    const guildId = extractGuildId(roomId);
+    const member = await isGuildMember(address, guildId);
+    if (!member) {
+      safeSend(
+        socket,
+        buildErrorMessage(
+          "FORBIDDEN",
+          "You must be a guild member to send typing indicators in this room",
+        ),
+      );
+      return;
+    }
+  }
 
   // Broadcast typing state to room (except sender — they already know)
   connectionManager.sendToRoom(
@@ -468,7 +489,7 @@ async function chatChannelHandler(
       break;
 
     case "TYPING":
-      handleTyping(socket, address, message.payload);
+      await handleTyping(socket, address, message.payload);
       break;
 
     default:

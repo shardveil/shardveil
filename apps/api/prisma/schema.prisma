@@ -120,11 +120,12 @@ model FriendRequest {
 }
 
 model DirectMessage {
-  id         String   @id @default(cuid())
-  senderId   String
-  receiverId String
-  content    String   @db.VarChar(1000)
-  createdAt  DateTime @default(now())
+  id          String   @id @default(cuid())
+  senderId    String
+  receiverId  String
+  content     String   @db.VarChar(1000)
+  isModerated Boolean  @default(false)
+  createdAt   DateTime @default(now())
 
   sender   Player @relation("SentMessages", fields: [senderId], references: [address])
   receiver Player @relation("ReceivedMessages", fields: [receiverId], references: [address])
@@ -226,10 +227,13 @@ model GuildMessage {
   guildId       String
   senderAddress String
   content       String   @db.VarChar(1000)
+  isModerated   Boolean  @default(false)
   createdAt     DateTime @default(now())
 
   guild  Guild  @relation(fields: [guildId], references: [id])
   sender Player @relation("GuildMessageSender", fields: [senderAddress], references: [address])
+
+  @@index([guildId, createdAt(sort: Desc)])
 }
 
 model GlobalChatMessage {
@@ -237,6 +241,7 @@ model GlobalChatMessage {
   room          String   @default("global")
   senderAddress String
   content       String   @db.VarChar(500)
+  isModerated   Boolean  @default(false)
   createdAt     DateTime @default(now())
 
   sender Player @relation("GlobalChatSender", fields: [senderAddress], references: [address])

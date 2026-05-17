@@ -51,14 +51,11 @@ function parsePaginationParams(
     }
   }
 
-  const limit = Math.min(
-    MAX_LIMIT,
-    Math.max(1, limitParam ? parseInt(limitParam, 10) : DEFAULT_LIMIT),
-  );
-
-  if (limitParam && Number.isNaN(parseInt(limitParam, 10))) {
+  const parsed = limitParam ? parseInt(limitParam, 10) : DEFAULT_LIMIT;
+  if (Number.isNaN(parsed)) {
     throw new ValidationError("Invalid `limit` parameter — expected integer");
   }
+  const limit = Math.min(MAX_LIMIT, Math.max(1, parsed));
 
   return { beforeDate, limit };
 }
@@ -149,7 +146,7 @@ socialRouter.get("/guild/:guildId/messages", requireAuth, async (c) => {
  *   before  (optional) — ISO 8601 timestamp cursor
  *   limit   (optional) — max messages to return (default 50, max 100)
  */
-socialRouter.get("/chat/global/:room", requireAuth, async (c) => {
+socialRouter.get("/chat/global/:room", async (c) => {
   // Decode percent-encoded room name (e.g. %23general → #general)
   const roomParam = decodeURIComponent(c.req.param("room"));
 
