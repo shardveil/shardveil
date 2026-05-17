@@ -3,6 +3,7 @@ import { Hono } from "hono";
 
 import { logger } from "../config/logger";
 import type { Address } from "../config/viem";
+import { registerBattleChannel } from "./channels/battleChannel";
 import { registerChatChannel } from "./channels/chatChannel";
 import { registerNotificationChannel } from "./channels/notificationChannel";
 import {
@@ -18,6 +19,7 @@ import { cleanupRateLimit } from "./middleware/wsRateLimit";
 registerPresenceChannel();
 registerNotificationChannel();
 registerChatChannel();
+registerBattleChannel();
 
 /** Ping interval in milliseconds. */
 const PING_INTERVAL_MS = 30_000;

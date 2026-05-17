@@ -23,6 +23,7 @@
     "@prisma/client": "^5.22.0",
     "@shardveil/contracts": "workspace:*",
     "@shardveil/shared": "workspace:*",
+    "bullmq": "^5.76.9",
     "hono": "^4.0.0",
     "ioredis": "^5.10.1",
     "jose": "^6.2.3",
