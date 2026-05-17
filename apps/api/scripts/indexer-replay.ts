@@ -1,16 +1,15 @@
 /**
- * Indexer Backfill Script — Task 4.7 / 4.13
+ * Indexer Replay Script — Task 4.13
  *
  * Usage:
- *   tsx scripts/indexer-backfill.ts --from <blockNumber> --to <blockNumber> [--contracts all|name1,name2]
+ *   tsx scripts/indexer-replay.ts --contract <contractName> --from <blockNumber>
  *
- * Processes historical on-chain events in 500-block chunks using
- * publicClient.getLogs. Idempotent — safe to re-run.
+ * Replays events for a SINGLE contract from a given block to the current chain
+ * head, in 500-block chunks. Calls indexerService.recordEvent which is
+ * idempotent — safe to re-run on already-indexed ranges.
  *
- * After all blocks are processed, calls indexerService.confirmEvents with
- * the `--to` block to promote old PENDING events to CONFIRMED.
- *
- * --contracts: comma-separated contract names to backfill, or "all" (default).
+ * --contract  (required) Single contract name, e.g. "packContract"
+ * --from      (required) Block number to replay from
  */
 
 import {
@@ -34,57 +33,7 @@ import { publicClient } from "../src/config/viem";
 import { indexerService } from "../src/services/indexerService";
 
 // ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function parseArgs(): {
-  from: bigint;
-  to: bigint;
-  contracts: string[] | "all";
-} {
-  const argv = process.argv.slice(2);
-  let fromBlock: bigint | undefined;
-  let toBlock: bigint | undefined;
-  let contractsArg: string | undefined;
-
-  for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === "--from" && argv[i + 1]) {
-      fromBlock = BigInt(argv[i + 1]!);
-      i++;
-    } else if (argv[i] === "--to" && argv[i + 1]) {
-      toBlock = BigInt(argv[i + 1]!);
-      i++;
-    } else if (argv[i] === "--contracts" && argv[i + 1]) {
-      contractsArg = argv[i + 1]!;
-      i++;
-    }
-  }
-
-  if (fromBlock === undefined || toBlock === undefined) {
-    console.error(
-      "Usage: tsx scripts/indexer-backfill.ts --from <block> --to <block> [--contracts all|name1,name2]",
-    );
-    process.exit(1);
-  }
-
-  if (fromBlock > toBlock) {
-    console.error("--from must be <= --to");
-    process.exit(1);
-  }
-
-  const contracts: string[] | "all" =
-    contractsArg === undefined || contractsArg === "all"
-      ? "all"
-      : contractsArg
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean);
-
-  return { from: fromBlock, to: toBlock, contracts };
-}
-
-// ---------------------------------------------------------------------------
-// Contract event definitions
+// Types
 // ---------------------------------------------------------------------------
 
 interface ContractEventDef {
@@ -92,6 +41,35 @@ interface ContractEventDef {
   address: `0x${string}`;
   abi: readonly unknown[];
   eventName: string;
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function parseArgs(): { contract: string; from: bigint } {
+  const argv = process.argv.slice(2);
+  let contractName: string | undefined;
+  let fromBlock: bigint | undefined;
+
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === "--contract" && argv[i + 1]) {
+      contractName = argv[i + 1]!;
+      i++;
+    } else if (argv[i] === "--from" && argv[i + 1]) {
+      fromBlock = BigInt(argv[i + 1]!);
+      i++;
+    }
+  }
+
+  if (!contractName || fromBlock === undefined) {
+    console.error(
+      "Usage: tsx scripts/indexer-replay.ts --contract <contractName> --from <blockNumber>",
+    );
+    process.exit(1);
+  }
+
+  return { contract: contractName, from: fromBlock };
 }
 
 function buildContractEvents(
@@ -202,33 +180,51 @@ function buildContractEvents(
 // ---------------------------------------------------------------------------
 
 async function main(): Promise<void> {
-  const { from: fromBlock, to: toBlock, contracts } = parseArgs();
+  const { contract: targetContract, from: fromBlock } = parseArgs();
   const chainAddresses = getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID);
   const allContractEvents = buildContractEvents(chainAddresses);
 
-  // Filter to requested contracts if --contracts was provided
-  const contractEvents =
-    contracts === "all"
-      ? allContractEvents
-      : allContractEvents.filter((c) => contracts.includes(c.contractName));
+  // Filter to only events belonging to the requested contract
+  const contractEvents = allContractEvents.filter(
+    (c) => c.contractName === targetContract,
+  );
 
-  if (contracts !== "all" && contractEvents.length === 0) {
-    logger.warn({ contracts }, "indexer-backfill: no matching contracts found");
+  if (contractEvents.length === 0) {
+    logger.error(
+      { contract: targetContract },
+      "indexer-replay: unknown contract name",
+    );
+    console.error(
+      `Unknown contract: "${targetContract}". Valid names: ${[
+        ...new Set(allContractEvents.map((c) => c.contractName)),
+      ].join(", ")}`,
+    );
+    process.exit(1);
+  }
+
+  // Fetch current chain head to use as the `to` block
+  const toBlock = await publicClient.getBlockNumber();
+
+  if (fromBlock > toBlock) {
+    logger.error(
+      { fromBlock: fromBlock.toString(), toBlock: toBlock.toString() },
+      "indexer-replay: --from is beyond current chain head",
+    );
     process.exit(1);
   }
 
   const CHUNK_SIZE = 500n;
-  const PROGRESS_INTERVAL = 100n;
   let totalNew = 0;
   let totalDuplicates = 0;
 
   logger.info(
     {
+      contract: targetContract,
       fromBlock: fromBlock.toString(),
       toBlock: toBlock.toString(),
-      contracts: contracts === "all" ? "all" : contracts.join(","),
+      eventCount: contractEvents.length,
     },
-    "indexer-backfill: starting",
+    "indexer-replay: starting",
   );
 
   for (const { contractName, address, abi, eventName } of contractEvents) {
@@ -240,15 +236,22 @@ async function main(): Promise<void> {
     if (!eventAbiItem) {
       logger.warn(
         { contractName, eventName },
-        "indexer-backfill: event ABI not found — skipping",
+        "indexer-replay: event ABI not found — skipping",
       );
       continue;
     }
 
+    logger.info(
+      {
+        contractName,
+        eventName,
+        fromBlock: fromBlock.toString(),
+        toBlock: toBlock.toString(),
+      },
+      "indexer-replay: replaying event",
+    );
+
     let chunk = 0;
-    let chunkNew = 0;
-    let chunkDuplicates = 0;
-    let lastProgressBlock = fromBlock;
 
     for (let start = fromBlock; start <= toBlock; start += CHUNK_SIZE) {
       const end =
@@ -258,14 +261,15 @@ async function main(): Promise<void> {
       try {
         const logs = await publicClient.getLogs({
           address,
-          // Use the ABI item directly; parseAbiItem needs a human-readable string
-          // so we pass the JSON ABI item instead
           event: eventAbiItem as Parameters<
             typeof publicClient.getLogs
           >[0]["event"],
           fromBlock: start,
           toBlock: end,
         });
+
+        let chunkNew = 0;
+        let chunkDuplicates = 0;
 
         for (const log of logs) {
           const args = (log.args ?? {}) as Record<string, unknown>;
@@ -278,7 +282,7 @@ async function main(): Promise<void> {
             eventName,
             blockNumber: blockNum,
             data: args,
-            // Historical backfill must not trigger notifications.
+            // Replay must not trigger notifications
             affectedAddresses: [],
           });
 
@@ -299,30 +303,11 @@ async function main(): Promise<void> {
             fromBlock: start.toString(),
             toBlock: end.toString(),
             logsFound: logs.length,
+            newEvents: chunkNew,
+            duplicates: chunkDuplicates,
           },
-          "indexer-backfill: chunk processed",
+          "indexer-replay: chunk processed",
         );
-
-        // Progress log every 100 blocks
-        if (end - lastProgressBlock >= PROGRESS_INTERVAL) {
-          const totalBlocks = toBlock - fromBlock || 1n;
-          const processed = end - fromBlock + 1n;
-          const pct = Number((processed * 100n) / totalBlocks);
-          logger.info(
-            {
-              contractName,
-              eventName,
-              currentBlock: end.toString(),
-              progress: `${pct}%`,
-              newEvents: chunkNew,
-              duplicates: chunkDuplicates,
-            },
-            "indexer-backfill: progress",
-          );
-          lastProgressBlock = end;
-          chunkNew = 0;
-          chunkDuplicates = 0;
-        }
       } catch (err) {
         logger.error(
           {
@@ -332,27 +317,23 @@ async function main(): Promise<void> {
             toBlock: end.toString(),
             error: err instanceof Error ? err.message : String(err),
           },
-          "indexer-backfill: chunk failed",
+          "indexer-replay: chunk failed",
         );
       }
     }
   }
 
-  // Confirm events up to the `to` block
   logger.info(
-    { toBlock: toBlock.toString() },
-    "indexer-backfill: confirming events",
+    { contract: targetContract, totalNew, totalDuplicates },
+    "indexer-replay: complete",
   );
-  await indexerService.confirmEvents(toBlock);
-
-  logger.info({ totalNew, totalDuplicates }, "indexer-backfill: complete");
 }
 
 main()
   .catch((err) => {
     logger.error(
       { error: err instanceof Error ? err.message : String(err) },
-      "indexer-backfill: fatal error",
+      "indexer-replay: fatal error",
     );
     process.exitCode = 1;
   })

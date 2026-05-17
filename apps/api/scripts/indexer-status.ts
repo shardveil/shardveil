@@ -38,16 +38,18 @@ async function main(): Promise<void> {
     lastBlock: string;
     currentBlock: string;
     lag: string;
+    lagValue: bigint | null;
   }[] = lastBlockValues.map(({ name, value }) => {
     const lastBlock = value !== null ? BigInt(value) : null;
-    const lag =
-      lastBlock !== null ? (currentBlock - lastBlock).toString() : "N/A";
+    const lagValue = lastBlock !== null ? currentBlock - lastBlock : null;
+    const lag = lagValue !== null ? lagValue.toString() : "N/A";
 
     return {
       contractName: name,
       lastBlock: lastBlock !== null ? lastBlock.toString() : "N/A",
       currentBlock: currentBlock.toString(),
       lag,
+      lagValue,
     };
   });
 
@@ -80,7 +82,16 @@ async function main(): Promise<void> {
   }
 
   console.log(separator);
-  console.log(`Current block: ${currentBlock.toString()}\n`);
+  console.log(`Current block: ${currentBlock.toString()}`);
+
+  // Summary: count contracts in sync (lag < 10)
+  const inSyncCount = rows.filter(
+    (r) => r.lagValue !== null && r.lagValue < 10n,
+  ).length;
+  const total = rows.length;
+  console.log(
+    `\nIndexer health: ${inSyncCount}/${total} contracts in sync (lag < 10)\n`,
+  );
 }
 
 main()
