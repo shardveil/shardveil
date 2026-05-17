@@ -3,6 +3,7 @@ import { Hono } from "hono";
 
 import { logger } from "../config/logger";
 import type { Address } from "../config/viem";
+import { registerChatChannel } from "./channels/chatChannel";
 import { registerNotificationChannel } from "./channels/notificationChannel";
 import {
   cleanupPresence,
@@ -16,6 +17,7 @@ import { cleanupRateLimit } from "./middleware/wsRateLimit";
 // Register all channel handlers at module load time.
 registerPresenceChannel();
 registerNotificationChannel();
+registerChatChannel();
 
 /** Ping interval in milliseconds. */
 const PING_INTERVAL_MS = 30_000;

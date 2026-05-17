@@ -10,8 +10,10 @@ import { standardLimit } from "./middleware/rateLimit";
 import { authRouter } from "./routes/auth";
 import { cardsRouter } from "./routes/cards";
 import { leaderboardRouter } from "./routes/leaderboard";
+import { messagesRouter } from "./routes/messages";
 import { notificationRouter } from "./routes/notification";
 import { profileRouter } from "./routes/profile";
+import { socialRouter } from "./routes/social";
 import { cacheService } from "./services/cacheService";
 
 const VERSION = process.env["npm_package_version"] ?? "0.0.1";
@@ -40,6 +42,8 @@ app.route("/profile", profileRouter);
 app.route("/cards", cardsRouter);
 app.route("/leaderboard", leaderboardRouter);
 app.route("/notifications", notificationRouter);
+app.route("/messages", messagesRouter);
+app.route("/social", socialRouter);
 
 app.get("/", (c) => c.text("ShardVeil API"));
 
