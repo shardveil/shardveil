@@ -28,7 +28,7 @@ export const XP_GRANTS_QUEUE = "xp-grants";
 
 const _redisUrl = new URL(env.REDIS_URL);
 
-const bullConnection = {
+export const bullConnection = {
   host: _redisUrl.hostname,
   port: parseInt(_redisUrl.port || "6379", 10),
   password: _redisUrl.password || undefined,
@@ -53,6 +53,11 @@ export const settlementQueue = new Queue(SETTLEMENT_QUEUE, {
   defaultJobOptions: {
     removeOnComplete: 100,
     removeOnFail: 500,
+    attempts: 3,
+    backoff: {
+      type: "exponential",
+      delay: 10_000, // 10 s → 30 s → 90 s
+    },
   },
 });
 

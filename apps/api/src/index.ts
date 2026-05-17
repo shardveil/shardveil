@@ -9,6 +9,7 @@ import { env } from "./config/env";
 import { logger } from "./config/logger";
 import { redis } from "./config/redis";
 import { shutdown as shutdownIndexer } from "./workers/eventIndexer"; // side-effect: starts the viem event indexer
+import { shutdown as shutdownSettlementSigner } from "./workers/settlementSigner"; // side-effect: starts the settlement signer worker
 import { shutdown as shutdownVrfWatcher } from "./workers/vrfWatcher"; // side-effect: starts the PackFulfilled VRF watcher
 import { createWsApp } from "./ws/wsServer";
 
@@ -51,6 +52,7 @@ async function shutdown(signal: string) {
     clearTimeout(forceExit);
     try {
       shutdownIndexer(signal);
+      shutdownSettlementSigner();
       shutdownVrfWatcher();
       await Promise.allSettled([prisma.$disconnect(), redis.quit()]);
       logger.info("Shutdown complete");
