@@ -2,6 +2,26 @@ import type { PrismaClient } from "@prisma/client";
 import type Redis from "ioredis";
 import { afterAll, beforeEach, vi } from "vitest";
 
+// ---------------------------------------------------------------------------
+// WS test client stub
+//
+// Real WS connections require Docker + a live HTTP server.  This stub lets
+// unit/integration tests assert on WS send/close calls without network setup.
+// ---------------------------------------------------------------------------
+
+/**
+ * Minimal in-memory WebSocket test client stub.
+ *
+ * @param _address - The Ethereum address to associate with the connection (unused in stub).
+ */
+export function createWsTestClient(_address: string) {
+  return {
+    send: vi.fn(),
+    close: vi.fn(),
+    messages: [] as unknown[],
+  };
+}
+
 // Mock publicClient — never make real RPC calls in tests
 vi.mock("../../src/config/viem", () => ({
   publicClient: {
