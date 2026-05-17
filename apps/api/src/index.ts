@@ -1,3 +1,4 @@
+import "./workers/activityGenerator"; // side-effect: starts the activity generator worker
 import "./workers/battleTimer"; // side-effect: starts the BullMQ battle timer worker
 import "./workers/tournamentWorker"; // side-effect: starts the BullMQ tournament worker
 import "./workers/xpSigner"; // side-effect: starts the XP signer worker
@@ -10,6 +11,7 @@ import { prisma } from "./config/database";
 import { env } from "./config/env";
 import { logger } from "./config/logger";
 import { redis } from "./config/redis";
+import { shutdown as shutdownActivityGenerator } from "./workers/activityGenerator"; // side-effect: already imported above
 import { shutdown as shutdownIndexer } from "./workers/eventIndexer"; // side-effect: starts the viem event indexer
 import { shutdown as shutdownSettlementSigner } from "./workers/settlementSigner"; // side-effect: starts the settlement signer worker
 import { shutdown as shutdownTournamentWorker } from "./workers/tournamentWorker"; // side-effect: already imported above
@@ -55,6 +57,7 @@ async function shutdown(signal: string) {
   server.close(async () => {
     clearTimeout(forceExit);
     try {
+      shutdownActivityGenerator();
       shutdownIndexer(signal);
       shutdownSettlementSigner();
       shutdownTournamentWorker();

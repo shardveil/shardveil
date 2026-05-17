@@ -21,6 +21,7 @@ export const BATTLE_TIMER_QUEUE = "battle-timers";
 export const SETTLEMENT_QUEUE = "settlement";
 export const XP_GRANTS_QUEUE = "xp-grants";
 export const TOURNAMENT_QUEUE = "tournament";
+export const ACTIVITY_EVENTS_QUEUE = "activity-events";
 
 // ---------------------------------------------------------------------------
 // Shared BullMQ connection options
@@ -84,12 +85,26 @@ export const tournamentQueue = new Queue(TOURNAMENT_QUEUE, {
   },
 });
 
+export const activityEventsQueue = new Queue(ACTIVITY_EVENTS_QUEUE, {
+  connection: bullConnection,
+  defaultJobOptions: {
+    removeOnComplete: 100,
+    removeOnFail: 500,
+    attempts: 3,
+    backoff: {
+      type: "exponential",
+      delay: 5_000,
+    },
+  },
+});
+
 // Log queue errors
 for (const queue of [
   battleTimerQueue,
   settlementQueue,
   xpGrantsQueue,
   tournamentQueue,
+  activityEventsQueue,
 ]) {
   queue.on("error", (err) => {
     logger.error(
