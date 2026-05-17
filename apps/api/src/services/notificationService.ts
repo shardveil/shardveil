@@ -90,8 +90,8 @@ async function invalidateUnreadCache(address: string): Promise<void> {
 
 /**
  * Decrement the unread-count cache for an address by `by`.
- * If the key doesn't exist we skip (it will be recomputed on next read).
- * Clamps to 0 to avoid negative counts.
+ * Uses atomic DECRBY to avoid race conditions.
+ * If the result goes negative, clamps to 0.
  * Fire-and-forget.
  */
 async function decrementUnreadCache(
@@ -101,10 +101,9 @@ async function decrementUnreadCache(
   if (by <= 0) return;
   try {
     const key = unreadCacheKey(address);
-    const current = await redis.get(key);
-    if (current !== null) {
-      const newCount = Math.max(0, parseInt(current, 10) - by);
-      await redis.set(key, String(newCount), "EX", UNREAD_CACHE_TTL_SECONDS);
+    const result = await redis.decrby(key, by);
+    if (result < 0) {
+      await redis.set(key, "0", "EX", UNREAD_CACHE_TTL_SECONDS);
     }
   } catch (err) {
     logger.warn(

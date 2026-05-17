@@ -71,11 +71,11 @@ function handleSubscribe(socket: Socket, address: Address): void {
 // Channel handler (dispatches by message type)
 // ---------------------------------------------------------------------------
 
-async function notificationChannelHandler(
+function notificationChannelHandler(
   socket: Socket,
   address: Address,
   message: WsEnvelope,
-): Promise<void> {
+): void {
   switch (message.type) {
     case "SUBSCRIBE":
       handleSubscribe(socket, address);

@@ -191,6 +191,7 @@ model Notification {
   player Player @relation(fields: [playerAddress], references: [address])
 
   @@index([playerAddress, readAt])
+  @@index([playerAddress, createdAt(sort: Desc)])
 }
 
 model Guild {

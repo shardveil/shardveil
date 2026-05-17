@@ -16,15 +16,11 @@ import { ValidationError } from "../lib/errors";
 import { requireAuth } from "../middleware/auth";
 import type { NotificationType } from "../services/notificationService";
 import {
-  create as _create,
   getUnreadCount,
   list,
   markAllRead,
   markRead,
 } from "../services/notificationService";
-
-// Re-export create so other modules (e.g. services) can use it via a single import.
-export { _create as createNotification };
 
 const notificationRouter = new Hono();
 
