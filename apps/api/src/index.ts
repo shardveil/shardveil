@@ -1,4 +1,5 @@
 import "./workers/battleTimer"; // side-effect: starts the BullMQ battle timer worker
+import "./workers/eventIndexer"; // side-effect: starts the viem event indexer
 
 import { serve } from "@hono/node-server";
 import { ARBITRUM_SEPOLIA_CHAIN_ID, getAddresses } from "@shardveil/contracts";
