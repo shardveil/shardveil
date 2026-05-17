@@ -19,6 +19,7 @@
 import type { BattleState } from "@shardveil/shared";
 import { type Job, Worker } from "bullmq";
 
+import { env } from "../config/env";
 import { logger } from "../config/logger";
 import { BATTLE_TIMER_QUEUE } from "../config/queue";
 import type { Address } from "../config/viem";
@@ -176,8 +177,12 @@ async function processBattleTimerJob(job: Job<TimerJobData>): Promise<void> {
 // Worker instance
 // ---------------------------------------------------------------------------
 
+const _redisUrl = new URL(env.REDIS_URL);
+
 const bullConnection = {
-  url: process.env["REDIS_URL"] ?? "redis://localhost:6379",
+  host: _redisUrl.hostname,
+  port: parseInt(_redisUrl.port || "6379", 10),
+  password: _redisUrl.password || undefined,
   maxRetriesPerRequest: null as null,
 };
 

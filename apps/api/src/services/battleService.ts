@@ -169,6 +169,11 @@ export async function joinMatch(
     throw new Error(`Match ${matchId} is not accepting new players`);
   }
 
+  // Guard: prevent a player from joining their own match
+  if (state.player1 === address) {
+    throw new Error("Cannot join your own match");
+  }
+
   // Second player joins
   const updated: BattleState = {
     ...state,

@@ -187,6 +187,9 @@ async function handleJoinMatch(
 
   const state = await joinMatch(matchId, address);
 
+  // Track which battle this player is in (needed for disconnect logic)
+  await setActiveBattle(address, matchId);
+
   // Subscribe this socket to the battle room
   connectionManager.joinRoom(socket, roomId);
 

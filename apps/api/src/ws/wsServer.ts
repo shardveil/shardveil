@@ -3,7 +3,10 @@ import { Hono } from "hono";
 
 import { logger } from "../config/logger";
 import type { Address } from "../config/viem";
-import { registerBattleChannel } from "./channels/battleChannel";
+import {
+  handleBattleDisconnect,
+  registerBattleChannel,
+} from "./channels/battleChannel";
 import { registerChatChannel } from "./channels/chatChannel";
 import { registerNotificationChannel } from "./channels/notificationChannel";
 import {
@@ -184,6 +187,15 @@ export function createWsApp(): {
           cleanupPresence(ws);
           if (address !== null) {
             connectionManager.unregister(ws);
+            handleBattleDisconnect(address).catch((err: unknown) => {
+              logger.error(
+                {
+                  address,
+                  error: err instanceof Error ? err.message : String(err),
+                },
+                "WS: error in handleBattleDisconnect",
+              );
+            });
           }
           logger.debug({ address }, "WS: connection closed");
         },

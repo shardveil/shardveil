@@ -22,11 +22,16 @@ export const XP_GRANTS_QUEUE = "xp-grants";
 
 // ---------------------------------------------------------------------------
 // Shared BullMQ connection options
-// BullMQ requires a separate ioredis connection (maxRetriesPerRequest: null).
+// BullMQ's `connection` is a plain ioredis RedisOptions — it does NOT accept
+// a `url` field. Parse REDIS_URL into host/port/password instead.
 // ---------------------------------------------------------------------------
 
+const _redisUrl = new URL(env.REDIS_URL);
+
 const bullConnection = {
-  url: env.REDIS_URL,
+  host: _redisUrl.hostname,
+  port: parseInt(_redisUrl.port || "6379", 10),
+  password: _redisUrl.password || undefined,
   // BullMQ requires maxRetriesPerRequest to be null
   maxRetriesPerRequest: null as null,
 };
