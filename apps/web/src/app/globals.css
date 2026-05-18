@@ -17,8 +17,8 @@
   }
 
   body {
-    background-color: var(--bg-base);
-    color: var(--text-primary);
+    background-color: var(--surface-base);
+    color: var(--content-primary);
   }
 
   /* Typography utility layer */

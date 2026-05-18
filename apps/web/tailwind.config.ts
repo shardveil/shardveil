@@ -12,7 +12,21 @@ const baseConfig = require("@shardveil/config/tailwind.base.js") as {
 };
 const base = baseConfig.default ?? (baseConfig as unknown as Config);
 
-/** Map a CSS variable to a Tailwind color value with optional opacity support */
+/** Map a CSS variable to a Tailwind color value with opacity modifier support.
+ *  When Tailwind applies an opacity modifier (e.g. bg-veil-500/50), it passes
+ *  opacityValue so we can use the rgb(R G B / alpha) form.
+ *  Falls back to the plain CSS var for non-opacity usage.
+ *
+ *  The function form is valid in Tailwind v3 at runtime; we cast to string to
+ *  satisfy the Config type definition which does not declare the callback form.
+ */
+const withOpacity = (varName: string, rgbVarName: string): string =>
+  (({ opacityValue }: { opacityValue?: string }) =>
+    opacityValue !== undefined
+      ? `rgb(var(${rgbVarName}) / ${opacityValue})`
+      : `var(${varName})`) as unknown as string;
+
+/** Semantic token (no opacity support needed for semantic aliases) */
 const cssVar = (name: string) => `var(${name})`;
 
 const config: Config = {
@@ -71,96 +85,96 @@ const config: Config = {
          hot-reloading and theming work correctly.
          -------------------------------------------------------- */
       colors: {
-        // Veil — deep purple scale
+        // Veil — deep purple scale (opacity modifier enabled)
         veil: {
-          50: cssVar("--veil-50"),
-          100: cssVar("--veil-100"),
-          200: cssVar("--veil-200"),
-          300: cssVar("--veil-300"),
-          400: cssVar("--veil-400"),
-          500: cssVar("--veil-500"),
-          600: cssVar("--veil-600"),
-          700: cssVar("--veil-700"),
-          800: cssVar("--veil-800"),
-          900: cssVar("--veil-900"),
-          950: cssVar("--veil-950"),
+          50: withOpacity("--veil-50", "--veil-50-rgb"),
+          100: withOpacity("--veil-100", "--veil-100-rgb"),
+          200: withOpacity("--veil-200", "--veil-200-rgb"),
+          300: withOpacity("--veil-300", "--veil-300-rgb"),
+          400: withOpacity("--veil-400", "--veil-400-rgb"),
+          500: withOpacity("--veil-500", "--veil-500-rgb"),
+          600: withOpacity("--veil-600", "--veil-600-rgb"),
+          700: withOpacity("--veil-700", "--veil-700-rgb"),
+          800: withOpacity("--veil-800", "--veil-800-rgb"),
+          900: withOpacity("--veil-900", "--veil-900-rgb"),
+          950: withOpacity("--veil-950", "--veil-950-rgb"),
         },
-        // Shard — cyan/teal scale
+        // Shard — cyan/teal scale (opacity modifier enabled)
         shard: {
-          50: cssVar("--shard-50"),
-          100: cssVar("--shard-100"),
-          200: cssVar("--shard-200"),
-          300: cssVar("--shard-300"),
-          400: cssVar("--shard-400"),
-          500: cssVar("--shard-500"),
-          600: cssVar("--shard-600"),
-          700: cssVar("--shard-700"),
-          800: cssVar("--shard-800"),
-          900: cssVar("--shard-900"),
-          950: cssVar("--shard-950"),
+          50: withOpacity("--shard-50", "--shard-50-rgb"),
+          100: withOpacity("--shard-100", "--shard-100-rgb"),
+          200: withOpacity("--shard-200", "--shard-200-rgb"),
+          300: withOpacity("--shard-300", "--shard-300-rgb"),
+          400: withOpacity("--shard-400", "--shard-400-rgb"),
+          500: withOpacity("--shard-500", "--shard-500-rgb"),
+          600: withOpacity("--shard-600", "--shard-600-rgb"),
+          700: withOpacity("--shard-700", "--shard-700-rgb"),
+          800: withOpacity("--shard-800", "--shard-800-rgb"),
+          900: withOpacity("--shard-900", "--shard-900-rgb"),
+          950: withOpacity("--shard-950", "--shard-950-rgb"),
         },
-        // Gold — legendary glow
+        // Gold — legendary glow (opacity modifier enabled)
         gold: {
-          50: cssVar("--gold-50"),
-          100: cssVar("--gold-100"),
-          200: cssVar("--gold-200"),
-          300: cssVar("--gold-300"),
-          400: cssVar("--gold-400"),
-          500: cssVar("--gold-500"),
-          600: cssVar("--gold-600"),
-          700: cssVar("--gold-700"),
-          800: cssVar("--gold-800"),
-          900: cssVar("--gold-900"),
-          950: cssVar("--gold-950"),
+          50: withOpacity("--gold-50", "--gold-50-rgb"),
+          100: withOpacity("--gold-100", "--gold-100-rgb"),
+          200: withOpacity("--gold-200", "--gold-200-rgb"),
+          300: withOpacity("--gold-300", "--gold-300-rgb"),
+          400: withOpacity("--gold-400", "--gold-400-rgb"),
+          500: withOpacity("--gold-500", "--gold-500-rgb"),
+          600: withOpacity("--gold-600", "--gold-600-rgb"),
+          700: withOpacity("--gold-700", "--gold-700-rgb"),
+          800: withOpacity("--gold-800", "--gold-800-rgb"),
+          900: withOpacity("--gold-900", "--gold-900-rgb"),
+          950: withOpacity("--gold-950", "--gold-950-rgb"),
         },
-        // Blood — battle accent
+        // Blood — battle accent (opacity modifier enabled)
         blood: {
-          50: cssVar("--blood-50"),
-          100: cssVar("--blood-100"),
-          200: cssVar("--blood-200"),
-          300: cssVar("--blood-300"),
-          400: cssVar("--blood-400"),
-          500: cssVar("--blood-500"),
-          600: cssVar("--blood-600"),
-          700: cssVar("--blood-700"),
-          800: cssVar("--blood-800"),
-          900: cssVar("--blood-900"),
-          950: cssVar("--blood-950"),
+          50: withOpacity("--blood-50", "--blood-50-rgb"),
+          100: withOpacity("--blood-100", "--blood-100-rgb"),
+          200: withOpacity("--blood-200", "--blood-200-rgb"),
+          300: withOpacity("--blood-300", "--blood-300-rgb"),
+          400: withOpacity("--blood-400", "--blood-400-rgb"),
+          500: withOpacity("--blood-500", "--blood-500-rgb"),
+          600: withOpacity("--blood-600", "--blood-600-rgb"),
+          700: withOpacity("--blood-700", "--blood-700-rgb"),
+          800: withOpacity("--blood-800", "--blood-800-rgb"),
+          900: withOpacity("--blood-900", "--blood-900-rgb"),
+          950: withOpacity("--blood-950", "--blood-950-rgb"),
         },
-        // Mythic — rainbow shimmer base
+        // Mythic — rainbow shimmer base (opacity modifier enabled)
         mythic: {
-          50: cssVar("--mythic-50"),
-          100: cssVar("--mythic-100"),
-          200: cssVar("--mythic-200"),
-          300: cssVar("--mythic-300"),
-          400: cssVar("--mythic-400"),
-          500: cssVar("--mythic-500"),
-          600: cssVar("--mythic-600"),
-          700: cssVar("--mythic-700"),
-          800: cssVar("--mythic-800"),
-          900: cssVar("--mythic-900"),
-          950: cssVar("--mythic-950"),
+          50: withOpacity("--mythic-50", "--mythic-50-rgb"),
+          100: withOpacity("--mythic-100", "--mythic-100-rgb"),
+          200: withOpacity("--mythic-200", "--mythic-200-rgb"),
+          300: withOpacity("--mythic-300", "--mythic-300-rgb"),
+          400: withOpacity("--mythic-400", "--mythic-400-rgb"),
+          500: withOpacity("--mythic-500", "--mythic-500-rgb"),
+          600: withOpacity("--mythic-600", "--mythic-600-rgb"),
+          700: withOpacity("--mythic-700", "--mythic-700-rgb"),
+          800: withOpacity("--mythic-800", "--mythic-800-rgb"),
+          900: withOpacity("--mythic-900", "--mythic-900-rgb"),
+          950: withOpacity("--mythic-950", "--mythic-950-rgb"),
         },
 
-        /* Semantic background tokens */
-        bg: {
-          base: cssVar("--bg-base"),
-          elevated: cssVar("--bg-elevated"),
-          overlay: cssVar("--bg-overlay"),
-          card: cssVar("--bg-card"),
+        /* Semantic surface tokens — renamed from 'bg' to avoid Tailwind utility conflict */
+        surface: {
+          base: cssVar("--surface-base"),
+          elevated: cssVar("--surface-elevated"),
+          overlay: cssVar("--surface-overlay"),
+          card: cssVar("--surface-card"),
         },
 
-        /* Semantic text tokens */
-        text: {
-          primary: cssVar("--text-primary"),
-          secondary: cssVar("--text-secondary"),
-          muted: cssVar("--text-muted"),
+        /* Semantic content tokens — renamed from 'text' to avoid Tailwind utility conflict */
+        content: {
+          primary: cssVar("--content-primary"),
+          secondary: cssVar("--content-secondary"),
+          muted: cssVar("--content-muted"),
         },
 
-        /* Semantic border tokens */
-        border: {
-          base: cssVar("--border-base"),
-          emphasis: cssVar("--border-emphasis"),
+        /* Semantic stroke tokens — renamed from 'border' to avoid Tailwind utility conflict */
+        stroke: {
+          base: cssVar("--stroke-base"),
+          emphasis: cssVar("--stroke-emphasis"),
         },
 
         /* Rarity tokens — used with bg-rarity-*, text-rarity-*, border-rarity-* */
@@ -190,28 +204,11 @@ const config: Config = {
       keyframes: {
         ...(((base.theme?.extend as Record<string, unknown>)
           ?.keyframes as Record<string, unknown>) ?? {}),
-        "card-flip": {
-          "0%": { transform: "rotateY(0deg)" },
-          "50%": { transform: "rotateY(90deg)" },
-          "100%": { transform: "rotateY(0deg)" },
-        },
-        "pity-trigger": {
-          "0%, 100%": { transform: "scale(1)", filter: "brightness(1)" },
-          "50%": { transform: "scale(1.05)", filter: "brightness(1.4)" },
-        },
+        // card-flip, pity-trigger, and glow-pulse are inherited from base config
+        // Only define keyframes NOT already in packages/config/tailwind.base.js
         "rarity-shimmer": {
           "0%": { backgroundPosition: "-200% center" },
           "100%": { backgroundPosition: "200% center" },
-        },
-        "glow-pulse": {
-          "0%, 100%": {
-            opacity: "0.8",
-            boxShadow: "0 0 8px 2px rgba(124,58,237,0.4)",
-          },
-          "50%": {
-            opacity: "1",
-            boxShadow: "0 0 20px 6px rgba(124,58,237,0.8)",
-          },
         },
         sparkle: {
           "0%": { transform: "scale(0) rotate(0deg)", opacity: "1" },
@@ -230,10 +227,8 @@ const config: Config = {
       animation: {
         ...(((base.theme?.extend as Record<string, unknown>)
           ?.animation as Record<string, unknown>) ?? {}),
-        "card-flip": "card-flip 0.6s ease-in-out",
-        "pity-trigger": "pity-trigger 0.4s ease-in-out",
+        // card-flip, pity-trigger, and glow-pulse are inherited from base config
         "rarity-shimmer": "rarity-shimmer 2s linear infinite",
-        "glow-pulse": "glow-pulse 2s ease-in-out infinite",
         sparkle: "sparkle 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards",
         "page-fade-in": "page-fade-in 0.3s cubic-bezier(0,0,0.2,1) both",
       },

@@ -18,6 +18,18 @@
   --veil-800: #3d1290;
   --veil-900: #2a0a6a;
   --veil-950: #1a0a2e;
+  /* RGB channels for opacity modifier support */
+  --veil-50-rgb:  245 240 255;
+  --veil-100-rgb: 237 224 255;
+  --veil-200-rgb: 216 192 254;
+  --veil-300-rgb: 188 148 253;
+  --veil-400-rgb: 155 95 250;
+  --veil-500-rgb: 124 58 237;
+  --veil-600-rgb: 102 32 212;
+  --veil-700-rgb: 82 21 176;
+  --veil-800-rgb: 61 18 144;
+  --veil-900-rgb: 42 10 106;
+  --veil-950-rgb: 26 10 46;
 
   /* ----------------------------------------------------------
      SHARD — Cyan/Teal Scale
@@ -33,6 +45,18 @@
   --shard-800: #1e3a8a;
   --shard-900: #162d6b;
   --shard-950: #0c1445;
+  /* RGB channels for opacity modifier support */
+  --shard-50-rgb:  239 246 255;
+  --shard-100-rgb: 219 234 254;
+  --shard-200-rgb: 191 219 254;
+  --shard-300-rgb: 147 197 253;
+  --shard-400-rgb: 96 165 250;
+  --shard-500-rgb: 59 130 246;
+  --shard-600-rgb: 37 99 235;
+  --shard-700-rgb: 29 78 216;
+  --shard-800-rgb: 30 58 138;
+  --shard-900-rgb: 22 45 107;
+  --shard-950-rgb: 12 20 69;
 
   /* ----------------------------------------------------------
      GOLD — Legendary Glow (Amber/Gold Scale)
@@ -48,6 +72,18 @@
   --gold-800: #92400e;
   --gold-900: #78350f;
   --gold-950: #451a03;
+  /* RGB channels for opacity modifier support */
+  --gold-50-rgb:  255 251 235;
+  --gold-100-rgb: 254 243 199;
+  --gold-200-rgb: 253 230 138;
+  --gold-300-rgb: 252 211 77;
+  --gold-400-rgb: 251 191 36;
+  --gold-500-rgb: 245 158 11;
+  --gold-600-rgb: 217 119 6;
+  --gold-700-rgb: 180 83 9;
+  --gold-800-rgb: 146 64 14;
+  --gold-900-rgb: 120 53 15;
+  --gold-950-rgb: 69 26 3;
 
   /* ----------------------------------------------------------
      BLOOD — Battle Accent (Red Scale)
@@ -63,6 +99,18 @@
   --blood-800: #9f1239;
   --blood-900: #881337;
   --blood-950: #4c0519;
+  /* RGB channels for opacity modifier support */
+  --blood-50-rgb:  255 241 242;
+  --blood-100-rgb: 255 228 230;
+  --blood-200-rgb: 254 205 211;
+  --blood-300-rgb: 253 164 175;
+  --blood-400-rgb: 251 113 133;
+  --blood-500-rgb: 244 63 94;
+  --blood-600-rgb: 225 29 72;
+  --blood-700-rgb: 190 18 60;
+  --blood-800-rgb: 159 18 57;
+  --blood-900-rgb: 136 19 55;
+  --blood-950-rgb: 76 5 25;
 
   /* ----------------------------------------------------------
      MYTHIC — Rainbow Shimmer Base (Pink/Rose Scale)
@@ -78,27 +126,39 @@
   --mythic-800: #9d174d;
   --mythic-900: #831843;
   --mythic-950: #4c0519;
+  /* RGB channels for opacity modifier support */
+  --mythic-50-rgb:  253 242 248;
+  --mythic-100-rgb: 252 231 243;
+  --mythic-200-rgb: 251 207 232;
+  --mythic-300-rgb: 249 168 212;
+  --mythic-400-rgb: 244 114 182;
+  --mythic-500-rgb: 236 72 153;
+  --mythic-600-rgb: 219 39 119;
+  --mythic-700-rgb: 190 24 93;
+  --mythic-800-rgb: 157 23 77;
+  --mythic-900-rgb: 131 24 67;
+  --mythic-950-rgb: 76 5 25;
 
   /* ----------------------------------------------------------
      SEMANTIC BACKGROUNDS
      ---------------------------------------------------------- */
-  --bg-base:     #0d0a1a;
-  --bg-elevated: #160f2e;
-  --bg-overlay:  #1e1540;
-  --bg-card:     #1a1035;
+  --surface-base:     #0d0a1a;
+  --surface-elevated: #160f2e;
+  --surface-overlay:  #1e1540;
+  --surface-card:     #1a1035;
 
   /* ----------------------------------------------------------
      SEMANTIC TEXT
      ---------------------------------------------------------- */
-  --text-primary:   #f0e8ff;
-  --text-secondary: #b89fd8;
-  --text-muted:     #7a6a99;
+  --content-primary:   #f0e8ff;
+  --content-secondary: #b89fd8;
+  --content-muted:     #7a6a99;
 
   /* ----------------------------------------------------------
      SEMANTIC BORDERS
      ---------------------------------------------------------- */
-  --border-base:     rgba(124, 58, 237, 0.2);
-  --border-emphasis: rgba(124, 58, 237, 0.6);
+  --stroke-base:     rgba(124, 58, 237, 0.2);
+  --stroke-emphasis: rgba(124, 58, 237, 0.6);
 
   /* ----------------------------------------------------------
      SPACING TOKENS
