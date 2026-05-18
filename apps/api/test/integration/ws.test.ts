@@ -5,7 +5,7 @@
  * All external dependencies (Prisma, Redis, connectionManager) are mocked.
  */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ---------------------------------------------------------------------------
 // Mock external dependencies before any module import
@@ -337,6 +337,79 @@ describe("NotificationService", () => {
 
     // DB record still created
     expect(vi.mocked(prisma.notification.create)).toHaveBeenCalledOnce();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// PresenceChannel — SUBSCRIBE handler
+// ---------------------------------------------------------------------------
+
+const SUBSCRIBER =
+  "0xcccccccccccccccccccccccccccccccccccccccc" as `0x${string}`;
+const FRIEND = "0xdddddddddddddddddddddddddddddddddddddddd" as `0x${string}`;
+
+describe("PresenceChannel — SUBSCRIBE", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("sends initial STATUS snapshot and pushes update when friend comes online", async () => {
+    const { messageRouter } = await import("../../src/ws/messageRouter");
+    const { registerPresenceChannel } =
+      await import("../../src/ws/channels/presenceChannel");
+
+    registerPresenceChannel();
+
+    // Override friend.findMany to return FRIEND as a confirmed friend
+    vi.mocked(prisma.friend.findMany).mockResolvedValueOnce([
+      { friendId: FRIEND } as Awaited<
+        ReturnType<typeof prisma.friend.findMany>
+      >[number],
+    ]);
+
+    // Initial redis.mget returns [null] — friend is offline
+    vi.mocked(redis.mget).mockResolvedValueOnce([null]);
+
+    const socket = makeMockSocket();
+
+    await messageRouter.route(
+      socket,
+      SUBSCRIBER,
+      JSON.stringify({
+        channel: "presence",
+        type: "SUBSCRIBE",
+        payload: { addresses: [FRIEND] },
+      }),
+    );
+
+    // Verify initial STATUS snapshot: friend offline
+    expect(socket.send).toHaveBeenCalledWith(
+      JSON.stringify({
+        channel: "presence",
+        type: "STATUS",
+        payload: { address: FRIEND, online: false },
+      }),
+    );
+
+    // Now simulate friend connecting — mget returns truthy value
+    vi.mocked(redis.mget).mockResolvedValue(["1"]);
+
+    // Advance fake timers to trigger the 10s polling interval
+    await vi.runAllTimersAsync();
+
+    // Verify STATUS update: friend now online
+    expect(socket.send).toHaveBeenCalledWith(
+      JSON.stringify({
+        channel: "presence",
+        type: "STATUS",
+        payload: { address: FRIEND, online: true },
+      }),
+    );
   });
 });
 
