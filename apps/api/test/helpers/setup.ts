@@ -49,10 +49,14 @@ beforeEach(async () => {
     redisClient = r.redis;
   }
 
-  // Truncate all tables in reverse FK order
-  await prismaClient.$executeRawUnsafe(`TRUNCATE TABLE "Player" CASCADE`);
-  // Flush test Redis DB (DB 1)
-  await redisClient.flushdb();
+  // Truncate all tables in reverse FK order (only if using a real DB, not a mock)
+  if (typeof (prismaClient as any).$executeRawUnsafe === "function") {
+    await prismaClient.$executeRawUnsafe(`TRUNCATE TABLE "Player" CASCADE`);
+  }
+  // Flush test Redis DB (DB 1) — only if using real Redis, not a mock
+  if (typeof (redisClient as any).flushdb === "function") {
+    await redisClient.flushdb();
+  }
 });
 
 afterAll(async () => {

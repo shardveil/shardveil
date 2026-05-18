@@ -5,7 +5,15 @@
  * All external dependencies (Prisma, Redis, connectionManager) are mocked.
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 // ---------------------------------------------------------------------------
 // Mock external dependencies before any module import
@@ -98,17 +106,13 @@ import { connectionManager } from "../../src/ws/connectionManager";
 
 type Socket = WSContext<WebSocket>;
 
-/** Build a minimal mock socket that captures sent messages. */
-function makeMockSocket(): Socket & { _sent: string[] } {
-  const sent: string[] = [];
+/** Build a minimal mock socket for asserting on send/close calls. */
+function makeMockSocket(): Socket {
   return {
     readyState: 1, // WS_OPEN
-    send: vi.fn((msg: string) => {
-      sent.push(msg);
-    }),
+    send: vi.fn(),
     close: vi.fn(),
-    _sent: sent,
-  } as unknown as Socket & { _sent: string[] };
+  } as unknown as Socket;
 }
 
 const SENDER = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" as `0x${string}`;
@@ -119,6 +123,12 @@ const RECEIVER = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" as `0x${string}`;
 // ---------------------------------------------------------------------------
 
 describe("ChatChannel — SEND DM", () => {
+  beforeAll(async () => {
+    const { registerChatChannel } =
+      await import("../../src/ws/channels/chatChannel");
+    registerChatChannel();
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset rate-limit mock to allow (count = 1 means first message, allowed)
@@ -135,11 +145,6 @@ describe("ChatChannel — SEND DM", () => {
   it("SEND DM creates DirectMessage record and delivers to room", async () => {
     // Lazy import to pick up the mocks
     const { messageRouter } = await import("../../src/ws/messageRouter");
-    const { registerChatChannel } =
-      await import("../../src/ws/channels/chatChannel");
-
-    // Register chat channel (idempotent in tests via module cache)
-    registerChatChannel();
 
     const mockCreate = vi
       .mocked(prisma.directMessage.create)
@@ -172,6 +177,7 @@ describe("ChatChannel — SEND DM", () => {
       expect.objectContaining({
         data: expect.objectContaining({
           senderId: SENDER,
+          receiverId: RECEIVER,
           content: "hello",
         }),
       }),
@@ -399,8 +405,8 @@ describe("PresenceChannel — SUBSCRIBE", () => {
     // Now simulate friend connecting — mget returns truthy value
     vi.mocked(redis.mget).mockResolvedValue(["1"]);
 
-    // Advance fake timers to trigger the 10s polling interval
-    await vi.runAllTimersAsync();
+    // Advance fake timers just past the 10s polling interval
+    await vi.advanceTimersByTimeAsync(10_001);
 
     // Verify STATUS update: friend now online
     expect(socket.send).toHaveBeenCalledWith(
@@ -418,6 +424,10 @@ describe("PresenceChannel — SUBSCRIBE", () => {
 // ---------------------------------------------------------------------------
 
 describe("NotificationChannel — SUBSCRIBE", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("SUBSCRIBE sends SUBSCRIBED acknowledgement", async () => {
     const { messageRouter } = await import("../../src/ws/messageRouter");
     const { registerNotificationChannel } =
