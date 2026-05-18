@@ -1,3 +1,5 @@
+// Note: WagmiProvider requires QueryClientProvider above it in the tree.
+// QueryClientProvider is added in Task 5.4 (QueryProvider) and composed in AppProvider (Task 5.13).
 "use client";
 
 import { type ReactNode } from "react";
@@ -18,6 +20,7 @@ interface Web3ProviderProps {
  * Note: RainbowKit is intentionally excluded — a custom connect modal
  * is provided in Task 5.7.
  */
+// Wired into the root layout via AppProvider (see apps/web/src/providers/AppProvider.tsx — Task 5.13)
 export function Web3Provider({ children, cookies }: Web3ProviderProps) {
   const initialState = cookieToInitialState(wagmiConfig, cookies);
 
