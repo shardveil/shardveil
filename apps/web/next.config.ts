@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@shardveil/shared", "@shardveil/contracts"],
 
   experimental: {
-    optimizePackageImports: ["lucide-react", "framer-motion", "recharts"],
+    optimizePackageImports: ["lucide-react", "motion", "recharts"],
   },
 
   images: {
@@ -43,6 +43,12 @@ const nextConfig: NextConfig = {
           {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Content-Security-Policy",
+            // TODO(Module 21): tighten before production
+            value:
+              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src *;",
           },
         ],
       },
