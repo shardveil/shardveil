@@ -1,3 +1,83 @@
+/* Design tokens — CSS custom properties */
+@import '../styles/tokens.css';
+
+/* Keyframe animations */
+@import '../styles/animations.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ----------------------------------------------------------
+   Base layer overrides
+   ---------------------------------------------------------- */
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+  }
+
+  /* Typography utility layer */
+  .type-display-1 {
+    font-size: var(--type-display-1-size);
+    line-height: var(--type-display-1-height);
+    font-weight: var(--type-display-1-weight);
+    font-family: var(--font-display, Cinzel, serif);
+  }
+
+  .type-display-2 {
+    font-size: var(--type-display-2-size);
+    line-height: var(--type-display-2-height);
+    font-weight: var(--type-display-2-weight);
+    font-family: var(--font-display, Cinzel, serif);
+  }
+
+  .type-display-3 {
+    font-size: var(--type-display-3-size);
+    line-height: var(--type-display-3-height);
+    font-weight: var(--type-display-3-weight);
+    font-family: var(--font-display, Cinzel, serif);
+  }
+
+  .type-display-4 {
+    font-size: var(--type-display-4-size);
+    line-height: var(--type-display-4-height);
+    font-weight: var(--type-display-4-weight);
+    font-family: var(--font-display, Cinzel, serif);
+  }
+
+  .type-body-lg {
+    font-size: var(--type-body-lg-size);
+    line-height: var(--type-body-lg-height);
+    font-weight: var(--type-body-lg-weight);
+  }
+
+  .type-body {
+    font-size: var(--type-body-size);
+    line-height: var(--type-body-height);
+    font-weight: var(--type-body-weight);
+  }
+
+  .type-body-sm {
+    font-size: var(--type-body-sm-size);
+    line-height: var(--type-body-sm-height);
+    font-weight: var(--type-body-sm-weight);
+  }
+
+  .type-caption {
+    font-size: var(--type-caption-size);
+    line-height: var(--type-caption-height);
+    font-weight: var(--type-caption-weight);
+  }
+
+  .type-mono {
+    font-size: var(--type-mono-size);
+    line-height: var(--type-mono-height);
+    font-weight: var(--type-mono-weight);
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  }
+}
