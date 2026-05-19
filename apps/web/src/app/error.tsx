@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 // TODO: Module 21 — report to Sentry here
 
 export default function Error({
@@ -47,12 +49,12 @@ export default function Error({
           Try Again
         </button>
 
-        <a
+        <Link
           href="/dashboard"
           className="px-6 py-2.5 rounded-md bg-surface-elevated hover:bg-surface-card text-content-primary border border-stroke-base text-sm font-body font-medium transition-colors"
         >
           Return to Portal
-        </a>
+        </Link>
       </div>
     </div>
   );
