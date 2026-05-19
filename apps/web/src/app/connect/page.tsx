@@ -2,16 +2,24 @@
 
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useAccount } from "wagmi";
 
 import { ConnectWalletButton } from "@/components/auth/ConnectWalletButton";
 import { SiweFlow } from "@/components/auth/SiweFlow";
 import { useAuthStore } from "@/stores/authStore";
 
-// ─── ConnectPage ──────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-export default function ConnectPage() {
+function safeRedirect(value: string | null, fallback = "/dashboard"): string {
+  if (!value) return fallback;
+  if (/^\/(?!\/)/.test(value)) return value;
+  return fallback;
+}
+
+// ─── ConnectPageContent ───────────────────────────────────────────────────────
+
+function ConnectPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isConnected } = useAccount();
@@ -20,7 +28,7 @@ export default function ConnectPage() {
   // Already authenticated → go straight to redirect or dashboard
   useEffect(() => {
     if (isAuthenticated) {
-      const redirect = searchParams?.get("redirect") ?? "/dashboard";
+      const redirect = safeRedirect(searchParams?.get("redirect"));
       router.replace(redirect);
     }
   }, [isAuthenticated, router, searchParams]);
@@ -72,6 +80,16 @@ export default function ConnectPage() {
         </p>
       </div>
     </main>
+  );
+}
+
+// ─── ConnectPage ──────────────────────────────────────────────────────────────
+
+export default function ConnectPage() {
+  return (
+    <Suspense fallback={null}>
+      <ConnectPageContent />
+    </Suspense>
   );
 }
 

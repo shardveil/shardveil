@@ -21,6 +21,12 @@ interface VerifyResponse {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+function safeRedirect(value: string | null, fallback = "/dashboard"): string {
+  if (!value) return fallback;
+  if (/^\/(?!\/)/.test(value)) return value;
+  return fallback;
+}
+
 function buildSiweMessage(
   address: string,
   chainId: number,
@@ -97,11 +103,16 @@ export function useAuth() {
 
       // 5. Persist: Zustand store + httpOnly cookie
       setAuth(address, jwt, expiresAt);
-      await storeToken(jwt, expiresAt);
+      try {
+        await storeToken(jwt, expiresAt);
+      } catch {
+        clearAuth();
+        throw new Error("Failed to persist authentication session");
+      }
 
       // 6. Navigate using redirect param or default to dashboard
       const searchParams = new URLSearchParams(window.location.search);
-      const redirect = searchParams.get("redirect") ?? "/dashboard";
+      const redirect = safeRedirect(searchParams.get("redirect"));
       router.push(redirect);
     } catch (err) {
       if (!isUserRejection(err)) {

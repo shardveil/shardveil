@@ -57,6 +57,12 @@ export const useAuthStore = create<AuthStore>()(
         name: "shardveil-auth",
         storage: createJSONStorage(() => localStorage),
         skipHydration: true,
+        partialize: (state) => ({
+          address: state.address,
+          isAuthenticated: state.isAuthenticated,
+          expiresAt: state.expiresAt,
+          // jwt intentionally excluded - lives in httpOnly cookie
+        }),
       },
     ),
     { name: "AuthStore" },
