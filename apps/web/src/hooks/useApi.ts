@@ -9,20 +9,28 @@ import { api } from "@/lib/api";
 /**
  * Thin TanStack Query v5 wrapper around the `api()` helper.
  *
- * - `queryKey` is automatically set to `["api", path]`.
+ * - `queryKey` defaults to `["api", path]`, but can be overridden via `options.queryKey`
+ *   for compatibility with the `qk` factory (e.g., `qk.profile.me()`).
  * - `queryFn` calls `api<T>(path)` with the JWT attached automatically.
  * - All other `UseQueryOptions` (enabled, staleTime, select, …) can be
  *   forwarded via `options`.
  *
  * @example
+ * // Default queryKey:
  * const { data, isLoading, error } = useApi<ProfileMe>("/profile/me");
+ *
+ * @example
+ * // Custom queryKey for cache invalidation compatibility:
+ * const { data } = useApi<ProfileMe>("/profile/me", { queryKey: qk.profile.me() });
  */
 export function useApi<T>(
   path: string,
-  options?: Omit<UseQueryOptions<T>, "queryFn" | "queryKey">,
+  options?: Omit<UseQueryOptions<T, Error>, "queryFn" | "queryKey"> & {
+    queryKey?: UseQueryOptions<T, Error>["queryKey"];
+  },
 ) {
   return useQuery<T>({
-    queryKey: ["api", path],
+    queryKey: options?.queryKey ?? ["api", path],
     queryFn: () => api<T>(path),
     ...options,
   });

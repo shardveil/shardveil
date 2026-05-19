@@ -1,3 +1,5 @@
+"use client";
+
 import { useAuthStore } from "@/stores/authStore";
 
 // ─── ApiError ────────────────────────────────────────────────────────────────
@@ -33,12 +35,12 @@ interface ErrorBody {
 // ─── api<T> ──────────────────────────────────────────────────────────────────
 
 /**
- * Typed API fetch helper. Works in both Server and Client Components.
+ * Typed API fetch helper for Client Components.
  *
- * - Attaches `Authorization: Bearer <jwt>` from Zustand authStore (client only)
+ * - Attaches `Authorization: Bearer <jwt>` from Zustand authStore
  *   unless `skipAuth` is `true`.
  * - Throws `ApiError` on non-2xx responses.
- * - On 401: clears authStore and redirects to `/connect` (client only).
+ * - On 401: clears authStore and redirects to `/connect`.
  */
 export async function api<T>(
   path: string,
@@ -47,6 +49,12 @@ export async function api<T>(
   const { skipAuth = false, ...fetchInit } = init ?? {};
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "";
+  if (
+    process.env.NODE_ENV === "development" &&
+    !process.env.NEXT_PUBLIC_API_URL
+  ) {
+    console.warn("[api] NEXT_PUBLIC_API_URL is not set — using relative URLs");
+  }
   const url = `${baseUrl}${path}`;
 
   // Build headers — start from caller-supplied headers if any
