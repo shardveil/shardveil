@@ -47,4 +47,11 @@ export const qk = {
     /** Player stats / game data looked up by wallet address. */
     byAddress: (addr: string) => ["player", "byAddress", addr] as const,
   },
+
+  chat: {
+    /** Chat room listings. Override `refetchOnWindowFocus: true` on queries using these keys. */
+    rooms: () => ["chat", "rooms"] as const,
+    /** Chat messages for a specific room. Override `refetchOnWindowFocus: true` on queries using these keys. */
+    messages: (roomId: string) => ["chat", "messages", roomId] as const,
+  },
 } as const;
