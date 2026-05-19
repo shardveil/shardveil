@@ -2,6 +2,11 @@ import "./globals.css";
 
 import { type Metadata } from "next";
 import { Cinzel, Inter } from "next/font/google";
+import { cookies } from "next/headers";
+
+import { QueryProvider } from "@/providers/QueryProvider";
+import { Web3Provider } from "@/providers/Web3Provider";
+import { WsProvider } from "@/providers/WsProvider";
 
 const cinzel = Cinzel({
   subsets: ["latin"],
@@ -20,15 +25,22 @@ export const metadata: Metadata = {
   description: "Decentralized NFT Card Game on Arbitrum",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore.toString();
+
   return (
     <html lang="en" className={`${cinzel.variable} ${inter.variable}`}>
       <body className="bg-veil-950 text-white font-body min-h-screen">
-        {children}
+        <QueryProvider>
+          <Web3Provider cookies={cookieHeader}>
+            <WsProvider>{children}</WsProvider>
+          </Web3Provider>
+        </QueryProvider>
       </body>
     </html>
   );
