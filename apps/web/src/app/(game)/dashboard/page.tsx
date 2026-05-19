@@ -3,6 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Coins, CreditCard, Layers, Shield, Swords } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { formatUnits } from "viem";
 
@@ -132,6 +133,7 @@ function ActivityFeed() {
 function DashboardContent() {
   const address = useAuthStore((s) => s.address);
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [balanceRefreshKey, setBalanceRefreshKey] = useState(0);
 
   // Profile
@@ -188,9 +190,9 @@ function DashboardContent() {
   return (
     <div className="space-y-6" key={balanceRefreshKey}>
       {/* Welcome card */}
-      <Card className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6">
+      <Card className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 animate-page-fade-in">
         <div>
-          <h1 className="font-display text-2xl font-bold text-content-primary leading-tight animate-page-fade-in">
+          <h1 className="font-display text-2xl font-bold text-content-primary leading-tight">
             Welcome, {profile.username}
           </h1>
           <p className="font-body text-sm text-content-muted mt-1">
@@ -206,7 +208,36 @@ function DashboardContent() {
         </Badge>
       </Card>
 
-      {/* New player empty state CTA */}
+      {/* Stats grid — always shown */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <StatCard
+          label="$VEIL Balance"
+          value={formatBalance(veilBalance as bigint | undefined)}
+          icon={<Coins className="h-4 w-4" />}
+        />
+        <StatCard
+          label="$SHARD Balance"
+          value={formatBalance(shardBalance as bigint | undefined)}
+          icon={<Coins className="h-4 w-4" />}
+        />
+        <StatCard
+          label="Rank"
+          value={profile.rank}
+          icon={<Shield className="h-4 w-4" />}
+        />
+        <StatCard
+          label="Cards Owned"
+          value={profile.cardsOwned}
+          icon={<CreditCard className="h-4 w-4" />}
+        />
+        <StatCard
+          label="Battles Played"
+          value={profile.battlesPlayed}
+          icon={<Swords className="h-4 w-4" />}
+        />
+      </div>
+
+      {/* New player empty state CTA — additive, shown alongside stats */}
       {isNewPlayer && (
         <EmptyState
           title="Your adventure starts here"
@@ -214,42 +245,9 @@ function DashboardContent() {
           icon={<Layers className="h-12 w-12" />}
           action={{
             label: "Open your first pack",
-            onClick: () => {
-              window.location.href = "/pack";
-            },
+            onClick: () => router.push("/pack"),
           }}
         />
-      )}
-
-      {/* Stats grid */}
-      {!isNewPlayer && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          <StatCard
-            label="$VEIL Balance"
-            value={formatBalance(veilBalance as bigint | undefined)}
-            icon={<Coins className="h-4 w-4" />}
-          />
-          <StatCard
-            label="$SHARD Balance"
-            value={formatBalance(shardBalance as bigint | undefined)}
-            icon={<Coins className="h-4 w-4" />}
-          />
-          <StatCard
-            label="Rank"
-            value={profile.rank}
-            icon={<Shield className="h-4 w-4" />}
-          />
-          <StatCard
-            label="Cards Owned"
-            value={profile.cardsOwned}
-            icon={<CreditCard className="h-4 w-4" />}
-          />
-          <StatCard
-            label="Battles Played"
-            value={profile.battlesPlayed}
-            icon={<Swords className="h-4 w-4" />}
-          />
-        </div>
       )}
 
       {/* Quick actions */}
