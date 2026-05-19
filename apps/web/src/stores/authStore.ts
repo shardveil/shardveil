@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { devtools, persist } from "zustand/middleware";
+import { createJSONStorage, devtools, persist } from "zustand/middleware";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -53,7 +53,11 @@ export const useAuthStore = create<AuthStore>()(
             "clearAuth",
           ),
       }),
-      { name: "shardveil-auth" },
+      {
+        name: "shardveil-auth",
+        storage: createJSONStorage(() => localStorage),
+        skipHydration: true,
+      },
     ),
     { name: "AuthStore" },
   ),

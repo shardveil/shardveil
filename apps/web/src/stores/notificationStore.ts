@@ -67,8 +67,8 @@ export const useNotificationStore = create<NotificationStore>()(
             const item = state.items.find((n) => n.id === id);
             if (item && !item.read) {
               item.read = true;
-              state.unreadCount = Math.max(0, state.unreadCount - 1);
             }
+            state.unreadCount = state.items.filter((n) => !n.read).length;
           },
           false,
           "markRead",
@@ -89,11 +89,8 @@ export const useNotificationStore = create<NotificationStore>()(
       removeNotification: (id) =>
         set(
           (state) => {
-            const item = state.items.find((n) => n.id === id);
             state.items = state.items.filter((n) => n.id !== id);
-            if (item && !item.read) {
-              state.unreadCount = Math.max(0, state.unreadCount - 1);
-            }
+            state.unreadCount = state.items.filter((n) => !n.read).length;
           },
           false,
           "removeNotification",

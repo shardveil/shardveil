@@ -6,7 +6,7 @@ import { devtools } from "zustand/middleware";
 export type BattleMatchState = "idle" | "matching" | "active" | "ended";
 export type BattlePhase = "draw" | "action" | "resolve" | null;
 
-export type BattleState = {
+export type BattleUiState = {
   activeMatchId: string | null;
   state: BattleMatchState;
   phase: BattlePhase;
@@ -27,11 +27,11 @@ export type BattleActions = {
   resetMatch: () => void;
 };
 
-export type BattleStore = BattleState & BattleActions;
+export type BattleStore = BattleUiState & BattleActions;
 
 // ─── Initial State ─────────────────────────────────────────────────────────────
 
-const initialState: BattleState = {
+const initialState: BattleUiState = {
   activeMatchId: null,
   state: "idle",
   phase: null,
