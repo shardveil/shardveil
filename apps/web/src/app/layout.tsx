@@ -5,6 +5,7 @@ import { Cinzel, Inter } from "next/font/google";
 import { cookies } from "next/headers";
 
 import { QueryProvider } from "@/providers/QueryProvider";
+import { ToastProvider } from "@/providers/ToastProvider";
 import { Web3Provider } from "@/providers/Web3Provider";
 import { WsProvider } from "@/providers/WsProvider";
 
@@ -38,7 +39,10 @@ export default async function RootLayout({
       <body className="bg-veil-950 text-white font-body min-h-screen">
         <QueryProvider>
           <Web3Provider cookies={cookieHeader}>
-            <WsProvider>{children}</WsProvider>
+            <WsProvider>
+              <ToastProvider />
+              {children}
+            </WsProvider>
           </Web3Provider>
         </QueryProvider>
       </body>
