@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Coins, CreditCard, Layers, Shield, Swords } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { formatUnits } from "viem";
 
 import { QuickActions } from "@/components/dashboard/QuickActions";
@@ -180,13 +180,25 @@ function DashboardContent() {
       : { functionName: "balanceOf", enabled: false },
   );
 
+  // Store refetch functions in refs to maintain stable wsHandler identity
+  const refetchVeilRef = useRef(refetchVeil);
+  const refetchShardRef = useRef(refetchShard);
+
+  // Keep refs updated on every render (but don't use in deps)
+  useEffect(() => {
+    refetchVeilRef.current = refetchVeil;
+  }, [refetchVeil]);
+  useEffect(() => {
+    refetchShardRef.current = refetchShard;
+  }, [refetchShard]);
+
   // Live balance updates via WS notifications
   const wsHandler = useCallback(() => {
     // Invalidate activity and refetch balances on any notification
     void queryClient.invalidateQueries({ queryKey: ["activity", "feed"] });
-    void refetchVeil();
-    void refetchShard();
-  }, [queryClient, refetchVeil, refetchShard]);
+    void refetchVeilRef.current();
+    void refetchShardRef.current();
+  }, [queryClient]);
   useWs("notification", wsHandler);
 
   const isNewPlayer =
