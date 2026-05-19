@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { useAccount } from "wagmi";
 
@@ -12,15 +13,17 @@ import { useAuthStore } from "@/stores/authStore";
 
 export default function ConnectPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isConnected } = useAccount();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
-  // Already authenticated → go straight to dashboard
+  // Already authenticated → go straight to redirect or dashboard
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace("/dashboard");
+      const redirect = searchParams?.get("redirect") ?? "/dashboard";
+      router.replace(redirect);
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, searchParams]);
 
   if (isAuthenticated) return null;
 

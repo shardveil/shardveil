@@ -99,8 +99,10 @@ export function useAuth() {
       setAuth(address, jwt, expiresAt);
       await storeToken(jwt, expiresAt);
 
-      // 6. Navigate to dashboard
-      router.push("/dashboard");
+      // 6. Navigate using redirect param or default to dashboard
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirect = searchParams.get("redirect") ?? "/dashboard";
+      router.push(redirect);
     } catch (err) {
       if (!isUserRejection(err)) {
         setError(err instanceof Error ? err.message : "Sign-in failed");
