@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Coins, CreditCard, Layers, Shield, Swords } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { formatUnits } from "viem";
 
 import { QuickActions } from "@/components/dashboard/QuickActions";
@@ -83,7 +83,7 @@ function DashboardSkeleton() {
 // ─── ActivityFeed ─────────────────────────────────────────────────────────────
 
 function ActivityFeed() {
-  const { data, isLoading, isError } = useApi<ActivityEntry[]>(
+  const { data, isLoading, isError, refetch } = useApi<ActivityEntry[]>(
     "/activity/feed?limit=5",
     { queryKey: ["activity", "feed"] },
   );
@@ -98,7 +98,21 @@ function ActivityFeed() {
     );
   }
 
-  if (isError || !data || data.length === 0) {
+  if (isError) {
+    return (
+      <div className="text-content-muted text-sm py-4 text-center">
+        Failed to load activity.{" "}
+        <button
+          onClick={() => void refetch()}
+          className="text-veil-400 hover:underline"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!data || data.length === 0) {
     return (
       <p className="text-content-muted text-sm py-4 text-center">
         No activity yet.
@@ -134,7 +148,6 @@ function DashboardContent() {
   const address = useAuthStore((s) => s.address);
   const queryClient = useQueryClient();
   const router = useRouter();
-  const [balanceRefreshKey, setBalanceRefreshKey] = useState(0);
 
   // Profile
   const {
@@ -145,7 +158,11 @@ function DashboardContent() {
 
   // VEIL balance
   const veilArgs = address ? ([address as `0x${string}`] as const) : undefined;
-  const { data: veilBalance, isLoading: veilLoading } = useVeilTokenRead(
+  const {
+    data: veilBalance,
+    isLoading: veilLoading,
+    refetch: refetchVeil,
+  } = useVeilTokenRead(
     veilArgs
       ? { functionName: "balanceOf", args: veilArgs, enabled: true }
       : { functionName: "balanceOf", enabled: false },
@@ -153,7 +170,11 @@ function DashboardContent() {
 
   // SHARD balance
   const shardArgs = address ? ([address as `0x${string}`] as const) : undefined;
-  const { data: shardBalance, isLoading: shardLoading } = useShardTokenRead(
+  const {
+    data: shardBalance,
+    isLoading: shardLoading,
+    refetch: refetchShard,
+  } = useShardTokenRead(
     shardArgs
       ? { functionName: "balanceOf", args: shardArgs, enabled: true }
       : { functionName: "balanceOf", enabled: false },
@@ -163,8 +184,9 @@ function DashboardContent() {
   const wsHandler = useCallback(() => {
     // Invalidate activity and refetch balances on any notification
     void queryClient.invalidateQueries({ queryKey: ["activity", "feed"] });
-    setBalanceRefreshKey((k) => k + 1);
-  }, [queryClient]);
+    void refetchVeil();
+    void refetchShard();
+  }, [queryClient, refetchVeil, refetchShard]);
   useWs("notification", wsHandler);
 
   const isNewPlayer =
@@ -188,7 +210,7 @@ function DashboardContent() {
   }
 
   return (
-    <div className="space-y-6" key={balanceRefreshKey}>
+    <div className="space-y-6">
       {/* Welcome card */}
       <Card className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 animate-page-fade-in">
         <div>
@@ -212,12 +234,16 @@ function DashboardContent() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <StatCard
           label="$VEIL Balance"
-          value={formatBalance(veilBalance as bigint | undefined)}
+          value={formatBalance(
+            typeof veilBalance === "bigint" ? veilBalance : undefined,
+          )}
           icon={<Coins className="h-4 w-4" />}
         />
         <StatCard
           label="$SHARD Balance"
-          value={formatBalance(shardBalance as bigint | undefined)}
+          value={formatBalance(
+            typeof shardBalance === "bigint" ? shardBalance : undefined,
+          )}
           icon={<Coins className="h-4 w-4" />}
         />
         <StatCard
