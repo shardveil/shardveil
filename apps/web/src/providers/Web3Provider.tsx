@@ -3,13 +3,13 @@
 "use client";
 
 import { type ReactNode } from "react";
-import { cookieToInitialState, WagmiProvider } from "wagmi";
+import { type State, WagmiProvider } from "wagmi";
 
 import { wagmiConfig } from "@/lib/wagmi";
 
 interface Web3ProviderProps {
   children: ReactNode;
-  cookies: string | null;
+  initialState: State | undefined;
 }
 
 /**
@@ -21,9 +21,7 @@ interface Web3ProviderProps {
  * is provided in Task 5.7.
  */
 // Wired into the root layout via AppProvider (see apps/web/src/providers/AppProvider.tsx — Task 5.13)
-export function Web3Provider({ children, cookies }: Web3ProviderProps) {
-  const initialState = cookieToInitialState(wagmiConfig, cookies);
-
+export function Web3Provider({ children, initialState }: Web3ProviderProps) {
   return (
     <WagmiProvider config={wagmiConfig} initialState={initialState}>
       {children}

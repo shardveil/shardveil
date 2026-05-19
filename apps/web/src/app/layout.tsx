@@ -2,8 +2,10 @@ import "./globals.css";
 
 import { type Metadata } from "next";
 import { Cinzel, Inter } from "next/font/google";
-import { cookies } from "next/headers";
+import { headers } from "next/headers";
+import { cookieToInitialState } from "wagmi";
 
+import { wagmiConfig } from "@/lib/wagmi";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ToastProvider } from "@/providers/ToastProvider";
 import { Web3Provider } from "@/providers/Web3Provider";
@@ -31,14 +33,15 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore.toString();
+  const cookieHeader = (await headers()).get("cookie");
+
+  const initialState = cookieToInitialState(wagmiConfig, cookieHeader);
 
   return (
     <html lang="en" className={`${cinzel.variable} ${inter.variable}`}>
       <body className="bg-veil-950 text-white font-body min-h-screen">
         <QueryProvider>
-          <Web3Provider cookies={cookieHeader}>
+          <Web3Provider initialState={initialState}>
             <WsProvider>
               <ToastProvider />
               {children}
