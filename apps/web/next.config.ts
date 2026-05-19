@@ -17,7 +17,7 @@ const csp = [
   "font-src 'self' data:",
 
   // Required for RPC, WalletConnect/Reown, APIs, HMR/websocket.
-  "connect-src 'self' http: https: ws: wss:",
+  `connect-src 'self' ${isDev ? "http://localhost:* http://127.0.0.1:*" : ""} https: ws: wss:`,
 
   // Required for wallet modal / verification / embedded wallet frames.
   "frame-src 'self' https:",

@@ -2,7 +2,7 @@
 
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // ─── Nav links ────────────────────────────────────────────────────────────────
 
@@ -19,6 +19,8 @@ const NAV_LINKS = [
 export function MarketingNav() {
   const [scrolled, setScrolled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
 
   // Sticky scroll — switch to glass bg after 50px
   useEffect(() => {
@@ -39,6 +41,20 @@ export function MarketingNav() {
     return () => {
       document.body.style.overflow = "";
     };
+  }, [drawerOpen]);
+
+  // Focus management: focus first focusable element on open, restore on close
+  useEffect(() => {
+    if (drawerOpen) {
+      const drawer = drawerRef.current;
+      if (!drawer) return;
+      const focusable = drawer.querySelector<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      focusable?.focus();
+    } else {
+      triggerRef.current?.focus();
+    }
   }, [drawerOpen]);
 
   return (
@@ -100,6 +116,7 @@ export function MarketingNav() {
 
             {/* Mobile hamburger */}
             <button
+              ref={triggerRef}
               type="button"
               aria-label={drawerOpen ? "Close menu" : "Open menu"}
               aria-expanded={drawerOpen}
@@ -128,10 +145,15 @@ export function MarketingNav() {
 
       {/* ── Mobile slide-in drawer ── */}
       <div
+        ref={drawerRef}
         id="mobile-drawer"
         role="dialog"
         aria-modal="true"
         aria-label="Navigation menu"
+        tabIndex={-1}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") setDrawerOpen(false);
+        }}
         className={[
           "fixed top-0 right-0 bottom-0 z-50 w-72 bg-surface-elevated border-l border-stroke-base",
           "flex flex-col pt-16 md:hidden",
