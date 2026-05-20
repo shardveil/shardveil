@@ -19,7 +19,13 @@ async function fetchLiveStats(): Promise<LiveStatsData> {
       { next: { revalidate: 60 } },
     );
     if (!res.ok) throw new Error("stats unavailable");
-    return (await res.json()) as LiveStatsData;
+    const data = await res.json();
+    return {
+      cardsMinted: Number(data?.cardsMinted ?? 0),
+      packsOpened: Number(data?.packsOpened ?? 0),
+      battlesTotal: Number(data?.battlesTotal ?? 0),
+      activePlayers: Number(data?.activePlayers ?? 0),
+    };
   } catch {
     return {
       cardsMinted: 0,
@@ -93,6 +99,8 @@ function StatCard({ stat }: { stat: StatItem }) {
 
   return (
     <div
+      role="region"
+      aria-label={stat.label}
       className="flex flex-col items-center justify-center gap-2 rounded-xl
         border border-stroke-base bg-surface-card px-6 py-8
         text-center"

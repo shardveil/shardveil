@@ -172,8 +172,8 @@ function TokenCard({
 
       {/* Bullet points */}
       <ul className="space-y-2.5">
-        {token.bullets.map((bullet) => (
-          <li key={bullet} className="flex items-center gap-3">
+        {token.bullets.map((bullet, idx) => (
+          <li key={idx} className="flex items-center gap-3">
             <span
               className={`h-1.5 w-1.5 rounded-full shrink-0 ${dotClass} opacity-70`}
               aria-hidden="true"

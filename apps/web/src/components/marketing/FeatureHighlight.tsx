@@ -1,4 +1,4 @@
-import * as React from "react";
+import type { ReactNode } from "react";
 
 // ─── Feature data ─────────────────────────────────────────────────────────────
 
@@ -170,11 +170,11 @@ export function FeatureHighlight() {
         </div>
 
         {/* Feature grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {FEATURES.map((feature) => (
             <FeatureCard key={feature.id} feature={feature} />
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   );
@@ -185,7 +185,7 @@ export function FeatureHighlight() {
 interface FeatureCardProps {
   feature: {
     id: string;
-    icon: React.ReactNode;
+    icon: ReactNode;
     title: string;
     description: string;
   };
@@ -193,7 +193,7 @@ interface FeatureCardProps {
 
 function FeatureCard({ feature }: FeatureCardProps) {
   return (
-    <div
+    <li
       className="group relative flex flex-col gap-4 rounded-xl
         border border-stroke-base bg-surface-card p-6
         transition-all duration-300
@@ -222,6 +222,6 @@ function FeatureCard({ feature }: FeatureCardProps) {
           {feature.description}
         </p>
       </div>
-    </div>
+    </li>
   );
 }
