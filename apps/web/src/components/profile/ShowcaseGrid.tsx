@@ -9,7 +9,7 @@ interface ShowcaseGridProps {
 export function ShowcaseGrid({ cards }: ShowcaseGridProps) {
   if (cards.length === 0) {
     return (
-      <p className="font-body text-sm text-content-muted text-center py-8">
+      <p className="font-body text-sm text-content-muted text-center py-8 motion-safe:transition-colors motion-safe:duration-200">
         No cards in showcase yet.
       </p>
     );
