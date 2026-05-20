@@ -1,5 +1,9 @@
 import Link from "next/link";
 
+import { truncateAddress } from "@/lib/format";
+
+import { RankCell } from "./RankCell";
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface CrafterEntry {
@@ -14,31 +18,6 @@ export interface CrafterEntry {
 
 interface CraftersTableProps {
   crafters: CrafterEntry[];
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function truncateAddress(addr: string): string {
-  return addr.slice(0, 6) + "…" + addr.slice(-4);
-}
-
-// ─── RankCell ─────────────────────────────────────────────────────────────────
-
-function RankCell({ rank }: { rank: number }) {
-  const color =
-    rank === 1
-      ? "text-yellow-400 font-bold"
-      : rank === 2
-        ? "text-zinc-300 font-semibold"
-        : rank === 3
-          ? "text-amber-600 font-semibold"
-          : "text-content-muted";
-
-  return (
-    <span className={`font-display text-sm tabular-nums ${color}`}>
-      #{rank}
-    </span>
-  );
 }
 
 // ─── CraftersTable ────────────────────────────────────────────────────────────
@@ -89,9 +68,7 @@ export function CraftersTable({ crafters }: CraftersTableProps) {
                 ].join(" ")}
               >
                 {/* Rank */}
-                <td className="px-4 py-3">
-                  <RankCell rank={crafter.rank} />
-                </td>
+                <RankCell rank={crafter.rank} />
 
                 {/* Crafter */}
                 <td className="px-4 py-3 whitespace-nowrap">

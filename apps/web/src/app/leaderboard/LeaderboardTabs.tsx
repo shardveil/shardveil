@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useRef, useState } from "react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,6 +33,7 @@ export function LeaderboardTabs({
   craftersSlot,
 }: LeaderboardTabsProps) {
   const [activeTab, setActiveTab] = useState<TabKey>("ranked");
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const content: Record<TabKey, ReactNode> = {
     ranked: rankedSlot,
@@ -47,17 +48,36 @@ export function LeaderboardTabs({
         role="tablist"
         aria-label="Leaderboard categories"
         className="mb-6 flex gap-2 border-b border-stroke-base pb-0"
+        onKeyDown={(e) => {
+          const tabs = ["ranked", "guilds", "crafters"] as const;
+          const idx = tabs.indexOf(activeTab);
+          if (e.key === "ArrowRight") {
+            const next = tabs[(idx + 1) % tabs.length]!;
+            setActiveTab(next);
+            tabRefs.current[(idx + 1) % tabs.length]?.focus();
+            e.preventDefault();
+          } else if (e.key === "ArrowLeft") {
+            const prev = tabs[(idx - 1 + tabs.length) % tabs.length]!;
+            setActiveTab(prev);
+            tabRefs.current[(idx - 1 + tabs.length) % tabs.length]?.focus();
+            e.preventDefault();
+          }
+        }}
       >
-        {TABS.map(({ key, label }) => {
+        {TABS.map(({ key, label }, i) => {
           const isActive = activeTab === key;
           return (
             <button
               key={key}
+              ref={(el) => {
+                tabRefs.current[i] = el;
+              }}
               role="tab"
               type="button"
               aria-selected={isActive}
               aria-controls={`tabpanel-${key}`}
               id={`tab-${key}`}
+              tabIndex={isActive ? 0 : -1}
               onClick={() => setActiveTab(key)}
               className={[
                 "relative -mb-px rounded-t-lg border border-b-0 px-5 py-2.5",

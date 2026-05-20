@@ -1,3 +1,5 @@
+import { RankCell } from "./RankCell";
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface GuildEntry {
@@ -11,25 +13,6 @@ export interface GuildEntry {
 
 interface GuildsTableProps {
   guilds: GuildEntry[];
-}
-
-// ─── RankCell ─────────────────────────────────────────────────────────────────
-
-function RankCell({ rank }: { rank: number }) {
-  const color =
-    rank === 1
-      ? "text-yellow-400 font-bold"
-      : rank === 2
-        ? "text-zinc-300 font-semibold"
-        : rank === 3
-          ? "text-amber-600 font-semibold"
-          : "text-content-muted";
-
-  return (
-    <span className={`font-display text-sm tabular-nums ${color}`}>
-      #{rank}
-    </span>
-  );
 }
 
 // ─── GuildsTable ──────────────────────────────────────────────────────────────
@@ -78,9 +61,7 @@ export function GuildsTable({ guilds }: GuildsTableProps) {
                 ].join(" ")}
               >
                 {/* Rank */}
-                <td className="px-4 py-3">
-                  <RankCell rank={guild.rank} />
-                </td>
+                <RankCell rank={guild.rank} />
 
                 {/* Guild */}
                 <td className="px-4 py-3 whitespace-nowrap">
