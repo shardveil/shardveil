@@ -27,21 +27,21 @@ export function Hero() {
         {/* Pulsing deep purple blob — top left */}
         <div
           className="absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full
-            bg-veil-900/40 blur-[120px] animate-pulse"
+            bg-veil-900/40 blur-[120px] motion-safe:animate-pulse"
           style={{ animationDuration: "6s" }}
         />
 
         {/* Pulsing deep purple blob — bottom right */}
         <div
           className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full
-            bg-veil-800/30 blur-[100px] animate-pulse"
+            bg-veil-800/30 blur-[100px] motion-safe:animate-pulse"
           style={{ animationDuration: "8s", animationDelay: "2s" }}
         />
 
         {/* Gold accent — top center */}
         <div
           className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px]
-            bg-gold-900/10 blur-[80px] animate-pulse"
+            bg-gold-900/10 blur-[80px] motion-safe:animate-pulse"
           style={{ animationDuration: "10s", animationDelay: "1s" }}
         />
 
@@ -60,7 +60,7 @@ export function Hero() {
       <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center">
         {/* Badge */}
         <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-gold-500/30 bg-gold-500/10 px-4 py-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-gold-400 animate-pulse" />
+          <span className="h-1.5 w-1.5 rounded-full bg-gold-400 motion-safe:animate-pulse" />
           <span className="type-caption text-gold-300 tracking-widest uppercase">
             Now live on Arbitrum Sepolia
           </span>
@@ -144,7 +144,7 @@ export function Hero() {
           height="20"
           viewBox="0 0 20 20"
           fill="none"
-          className="text-content-muted animate-bounce"
+          className="text-content-muted motion-safe:animate-bounce"
           style={{ animationDuration: "1.5s" }}
           aria-hidden="true"
         >
