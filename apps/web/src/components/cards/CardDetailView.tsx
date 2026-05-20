@@ -282,16 +282,14 @@ export function CardDetailView({ card }: CardDetailViewProps) {
             &mdash; {rarityLabel}
           </p>
           <div className="flex items-center gap-3 ml-auto">
-            <Link
-              href="/cards"
-              aria-disabled="true"
+            <button
+              type="button"
+              disabled
               title="Coming soon"
-              onClick={(e) => e.preventDefault()}
-              className="inline-flex items-center gap-2 rounded-lg border border-stroke-emphasis bg-veil-800 px-4 py-2 font-display text-sm font-semibold text-veil-400 opacity-50 cursor-not-allowed focus-visible:outline-none"
-              tabIndex={-1}
+              className="inline-flex items-center gap-2 rounded-lg border border-stroke-emphasis bg-veil-800 px-4 py-2 font-display text-sm font-semibold text-veil-400 opacity-50 cursor-not-allowed"
             >
               Open a Pack
-            </Link>
+            </button>
             <button
               type="button"
               disabled
