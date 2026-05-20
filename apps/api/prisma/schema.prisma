@@ -317,3 +317,18 @@ model LeaderboardSnapshot {
   @@unique([seasonId, playerAddress])
   @@index([seasonId, seasonExp(sort: Desc)])
 }
+
+model IndexedEvent {
+  id           String   @id @default(cuid())
+  txHash       String
+  logIndex     Int
+  contractName String
+  eventName    String
+  blockNumber  BigInt
+  data         Json
+  status       String   @default("PENDING")
+  createdAt    DateTime @default(now())
+
+  @@unique([txHash, logIndex])
+  @@index([status, blockNumber])
+}

@@ -1,13 +1,11 @@
 // ─── CardPriceChart ───────────────────────────────────────────────────────────
 // Simple SVG line chart of price history. No external chart library.
 
-interface PricePoint {
-  timestamp: number;
-  price: string;
-}
+import type { PricePoint } from "@/types/card";
 
 interface CardPriceChartProps {
   priceHistory: PricePoint[];
+  cardId?: number | string;
 }
 
 // Format timestamp to short date label (e.g. "May 1")
@@ -18,7 +16,8 @@ function formatDate(ts: number): string {
   });
 }
 
-export function CardPriceChart({ priceHistory }: CardPriceChartProps) {
+export function CardPriceChart({ priceHistory, cardId }: CardPriceChartProps) {
+  const gradientId = `priceGradient-${cardId ?? 0}`;
   if (priceHistory.length < 2) {
     return (
       <section aria-label="Price history">
@@ -118,7 +117,7 @@ export function CardPriceChart({ priceHistory }: CardPriceChartProps) {
           ))}
 
           {/* ── Area fill ── */}
-          <path d={areaPath} fill="url(#priceGradient)" opacity="0.2" />
+          <path d={areaPath} fill={`url(#${gradientId})`} opacity="0.2" />
 
           {/* ── Line ── */}
           <polyline
@@ -178,9 +177,9 @@ export function CardPriceChart({ priceHistory }: CardPriceChartProps) {
 
           {/* ── Gradient definition ── */}
           <defs>
-            <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#a78bfa" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="#a78bfa" stopOpacity="0" />
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--veil-400)" stopOpacity="0.6" />
+              <stop offset="100%" stopColor="var(--veil-400)" stopOpacity="0" />
             </linearGradient>
           </defs>
         </svg>

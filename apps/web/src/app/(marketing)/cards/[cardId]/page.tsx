@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 
 import {
   type CardDetail,
@@ -16,7 +17,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 // ─── Data fetching ────────────────────────────────────────────────────────────
 
-async function fetchCard(cardId: string): Promise<CardDetail | null> {
+const fetchCard = cache(async (cardId: string): Promise<CardDetail | null> => {
   try {
     const res = await fetch(`${API_URL}/cards/${cardId}`, {
       next: { revalidate: 300 },
@@ -27,7 +28,7 @@ async function fetchCard(cardId: string): Promise<CardDetail | null> {
   } catch {
     return null;
   }
-}
+});
 
 // ─── Dynamic metadata ─────────────────────────────────────────────────────────
 

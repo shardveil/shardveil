@@ -1,28 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import type { CardAbility, CardHolder, PricePoint } from "@/types/card";
+
 import { CardHolders } from "./CardHolders";
 import { CardLore } from "./CardLore";
 import { CardPriceChart } from "./CardPriceChart";
 import { CardStats } from "./CardStats";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-
-interface Ability {
-  name: string;
-  description: string;
-}
-
-interface PricePoint {
-  timestamp: number;
-  price: string;
-}
-
-interface Holder {
-  address: string;
-  balance: number;
-  username?: string;
-}
 
 export interface CardDetail {
   id: number;
@@ -35,9 +21,9 @@ export interface CardDetail {
   defense?: number;
   element?: string;
   lore?: string;
-  abilities?: Ability[];
+  abilities?: CardAbility[];
   priceHistory?: PricePoint[];
-  topHolders?: Holder[];
+  topHolders?: CardHolder[];
 }
 
 // ─── Rarity helpers ───────────────────────────────────────────────────────────
@@ -264,7 +250,10 @@ export function CardDetailView({ card }: CardDetailViewProps) {
             <CardLore lore={card.lore} />
 
             {/* ── Section 4: Price Chart ── */}
-            <CardPriceChart priceHistory={card.priceHistory ?? []} />
+            <CardPriceChart
+              priceHistory={card.priceHistory ?? []}
+              cardId={card.id}
+            />
 
             {/* ── Section 5: Top Holders ── */}
             <CardHolders holders={card.topHolders ?? []} />

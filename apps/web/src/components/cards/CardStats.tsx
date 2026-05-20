@@ -1,16 +1,13 @@
 // ─── CardStats ────────────────────────────────────────────────────────────────
 // Displays power, defense, element, and abilities for a card.
 
-interface Ability {
-  name: string;
-  description: string;
-}
+import type { CardAbility } from "@/types/card";
 
 interface CardStatsProps {
   power?: number | undefined;
   defense?: number | undefined;
   element?: string | undefined;
-  abilities?: Ability[] | undefined;
+  abilities?: CardAbility[] | undefined;
 }
 
 // ─── Inline SVG icons ─────────────────────────────────────────────────────────
@@ -220,7 +217,7 @@ export function CardStats({
             Abilities
           </h3>
           <ul className="space-y-2">
-            {abilities!.map((ability) => (
+            {(abilities ?? []).map((ability) => (
               <li
                 key={ability.name}
                 className="rounded-lg border border-stroke-base bg-surface-elevated p-3"

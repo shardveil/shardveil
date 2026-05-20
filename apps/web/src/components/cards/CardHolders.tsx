@@ -1,16 +1,12 @@
 import Link from "next/link";
 
+import type { CardHolder } from "@/types/card";
+
 // ─── CardHolders ──────────────────────────────────────────────────────────────
 // Table of top card holders with rank, address/username, and balance.
 
-interface Holder {
-  address: string;
-  balance: number;
-  username?: string;
-}
-
 interface CardHoldersProps {
-  holders: Holder[];
+  holders: CardHolder[];
 }
 
 function truncateAddress(address: string): string {
