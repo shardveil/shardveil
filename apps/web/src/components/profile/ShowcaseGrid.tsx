@@ -2,6 +2,8 @@ import { type CardData, CardThumbnail } from "@/components/cards/CardThumbnail";
 
 // ─── ShowcaseGrid ─────────────────────────────────────────────────────────────
 
+const MAX_SHOWCASE_CARDS = 6;
+
 interface ShowcaseGridProps {
   cards: CardData[];
 }
@@ -15,7 +17,7 @@ export function ShowcaseGrid({ cards }: ShowcaseGridProps) {
     );
   }
 
-  const visibleCards = cards.slice(0, 6);
+  const visibleCards = cards.slice(0, MAX_SHOWCASE_CARDS);
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">

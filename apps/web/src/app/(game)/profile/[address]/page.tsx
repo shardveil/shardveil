@@ -20,16 +20,12 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 const fetchProfile = cache(
   async (address: string): Promise<ProfileApiResponse | null> => {
-    try {
-      const res = await fetch(`${API_URL}/profile/${address}`, {
-        next: { revalidate: 300 },
-      });
-      if (res.status === 404) return null;
-      if (!res.ok) throw new Error(`API error: ${res.status}`);
-      return (await res.json()) as ProfileApiResponse;
-    } catch {
-      return null;
-    }
+    const res = await fetch(`${API_URL}/profile/${address}`, {
+      next: { revalidate: 300 },
+    });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`Profile fetch failed: ${res.status}`);
+    return (await res.json()) as ProfileApiResponse;
   },
 );
 

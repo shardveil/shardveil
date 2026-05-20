@@ -93,7 +93,7 @@ export function PublicProfile({ profile }: PublicProfileProps) {
           <h1 className="font-display text-2xl text-content-primary truncate">
             {profile.username ?? truncateAddress(profile.address)}
           </h1>
-          <p className="font-body text-sm text-content-muted hover:text-content-secondary motion-safe:transition-colors motion-safe:duration-200">
+          <p className="font-body text-sm text-content-muted">
             {truncateAddress(profile.address)}
           </p>
           {profile.bio && (
