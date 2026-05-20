@@ -11,6 +11,10 @@ import {
 
 export const revalidate = 300;
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://shardveil.xyz";
+
 // ─── API ──────────────────────────────────────────────────────────────────────
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
@@ -44,16 +48,24 @@ export async function generateMetadata({
   if (!card) {
     return { title: "Card Not Found | ShardVeil" };
   }
+  const ogImage = `${BASE_URL}/api/og/card/${cardId}`;
   return {
     title: `${card.name} | ShardVeil Cards`,
     description: card.lore
       ? card.lore.slice(0, 155).replace(/\n/g, " ") + "…"
       : `View ${card.name}, a ${card.rarity.toLowerCase()} card in the ShardVeil universe.`,
+    alternates: {
+      canonical: `${BASE_URL}/cards/${cardId}`,
+    },
     openGraph: {
       title: `${card.name} | ShardVeil Cards`,
       description: `${card.rarity} card — ${Number(card.minted).toLocaleString()} minted.`,
-      ...(card.imageUrl ? { images: [card.imageUrl] } : {}),
+      images: [ogImage],
       type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      images: [ogImage],
     },
   };
 }
@@ -68,5 +80,28 @@ export default async function CardDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  return <CardDetailView card={card} />;
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: card.name,
+    description: card.lore
+      ? card.lore.slice(0, 155).replace(/\n/g, " ") + "…"
+      : `${card.rarity} card in the ShardVeil universe.`,
+    image: card.imageUrl ?? `${BASE_URL}/api/og/card/${cardId}`,
+    offers: {
+      "@type": "Offer",
+      availability: "https://schema.org/InStock",
+      priceCurrency: "ETH",
+    },
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <CardDetailView card={card} />
+    </>
+  );
 }

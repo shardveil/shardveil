@@ -12,6 +12,10 @@ import { truncateAddress } from "@/lib/format";
 
 export const revalidate = 300;
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://shardveil.xyz";
+
 // ─── API ──────────────────────────────────────────────────────────────────────
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
@@ -46,17 +50,25 @@ export async function generateMetadata({
   }
 
   const displayName = profile.username ?? truncateAddress(profile.address);
+  const ogImage = `${BASE_URL}/api/og/profile/${address}`;
 
   return {
     title: `${displayName} | ShardVeil Profile`,
     description: profile.bio
       ? profile.bio.slice(0, 155).replace(/\n/g, " ")
       : `View ${displayName}'s ShardVeil profile.`,
+    alternates: {
+      canonical: `${BASE_URL}/profile/${address}`,
+    },
     openGraph: {
       title: `${displayName} | ShardVeil Profile`,
       description: `View ${displayName}'s ShardVeil profile.`,
-      ...(profile.avatarUrl ? { images: [profile.avatarUrl] } : {}),
+      images: [ogImage],
       type: "profile",
+    },
+    twitter: {
+      card: "summary_large_image",
+      images: [ogImage],
     },
   };
 }
@@ -71,5 +83,22 @@ export default async function ProfilePage({ params }: PageProps) {
     notFound();
   }
 
-  return <PublicProfile profile={profile} />;
+  const displayName = profile.username ?? truncateAddress(profile.address);
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: displayName,
+    url: `${BASE_URL}/profile/${address}`,
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <PublicProfile profile={profile} />
+    </>
+  );
 }

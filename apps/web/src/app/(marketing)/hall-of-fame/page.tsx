@@ -3,12 +3,47 @@ import type { Metadata } from "next";
 import { CategoryTable } from "@/components/marketing/HallOfFame/CategoryTable";
 import { Pedestal } from "@/components/marketing/HallOfFame/Pedestal";
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://shardveil.xyz";
+
 // ─── SEO metadata ─────────────────────────────────────────────────────────────
 
 export const metadata: Metadata = {
   title: "Hall of Fame",
   description:
     "The greatest players in ShardVeil history — those who pierced the Veil.",
+  alternates: {
+    canonical: `${BASE_URL}/hall-of-fame`,
+  },
+  openGraph: {
+    title: "Hall of Fame | ShardVeil",
+    description:
+      "The greatest players in ShardVeil history — those who pierced the Veil.",
+    type: "website",
+    images: [`${BASE_URL}/api/og/landing`],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: [`${BASE_URL}/api/og/landing`],
+  },
+};
+
+// ─── JSON-LD structured data ──────────────────────────────────────────────────
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": `${BASE_URL}/hall-of-fame`,
+  name: "Hall of Fame | ShardVeil",
+  description:
+    "The greatest players in ShardVeil history — those who pierced the Veil.",
+  url: `${BASE_URL}/hall-of-fame`,
+  publisher: {
+    "@type": "Organization",
+    "@id": `${BASE_URL}/#org`,
+    name: "ShardVeil",
+  },
 };
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -163,6 +198,10 @@ export default async function HallOfFamePage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       {/* ── Page header ── */}
       <header className="mb-14 text-center">
         {/* Decorative accent line */}

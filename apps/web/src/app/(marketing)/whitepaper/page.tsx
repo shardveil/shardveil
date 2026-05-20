@@ -4,17 +4,29 @@ import type { WhitepaperSection } from "@/components/marketing/Whitepaper/Sectio
 import { Section } from "@/components/marketing/Whitepaper/Section";
 import { TableOfContents } from "@/components/marketing/Whitepaper/TableOfContents";
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://shardveil.xyz";
+
 // ─── SEO metadata ─────────────────────────────────────────────────────────────
 
 export const metadata: Metadata = {
   title: "Whitepaper",
   description:
     "The ShardVeil protocol whitepaper — a complete technical and economic specification of the dark fantasy NFT card game on Arbitrum Sepolia.",
+  alternates: {
+    canonical: `${BASE_URL}/whitepaper`,
+  },
   openGraph: {
     title: "ShardVeil Whitepaper",
     description:
       "Complete technical and economic specification of the ShardVeil protocol — verifiable gacha, commit-reveal battles, bonding curve AMM, and on-chain governance.",
     type: "article",
+    images: [`${BASE_URL}/api/og/landing`],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: [`${BASE_URL}/api/og/landing`],
   },
 };
 
@@ -135,11 +147,32 @@ Phase IV — Endgame (Q1 2027): Full DAO handoff — development team relinquish
   },
 ];
 
+// ─── JSON-LD structured data ──────────────────────────────────────────────────
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "@id": `${BASE_URL}/whitepaper`,
+  name: "ShardVeil Whitepaper",
+  description:
+    "Complete technical and economic specification of the ShardVeil protocol.",
+  url: `${BASE_URL}/whitepaper`,
+  publisher: {
+    "@type": "Organization",
+    "@id": `${BASE_URL}/#org`,
+    name: "ShardVeil",
+  },
+};
+
 // ─── WhitepaperPage ───────────────────────────────────────────────────────────
 
 export default function WhitepaperPage() {
   return (
     <div className="relative min-h-screen bg-surface-base">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       {/* Subtle background ambient */}
       <div
         aria-hidden="true"

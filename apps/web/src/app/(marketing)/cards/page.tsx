@@ -10,16 +10,28 @@ import { type CardData } from "@/components/cards/CardThumbnail";
 
 export const revalidate = 60;
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://shardveil.xyz";
+
 // ─── SEO metadata ─────────────────────────────────────────────────────────────
 
 export const metadata: Metadata = {
   title: "Card Catalog",
   description: "Browse all registered cards in ShardVeil.",
+  alternates: {
+    canonical: `${BASE_URL}/cards`,
+  },
   openGraph: {
     title: "Card Catalog | ShardVeil",
     description:
       "Browse all registered cards in the ShardVeil dark fantasy card game.",
     type: "website",
+    images: [`${BASE_URL}/api/og/landing`],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: [`${BASE_URL}/api/og/landing`],
   },
 };
 
@@ -116,6 +128,23 @@ function CrystalIcon() {
   );
 }
 
+// ─── JSON-LD structured data ──────────────────────────────────────────────────
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "@id": `${BASE_URL}/cards`,
+  name: "Card Catalog | ShardVeil",
+  description:
+    "Browse all registered cards in the ShardVeil dark fantasy card game.",
+  url: `${BASE_URL}/cards`,
+  publisher: {
+    "@type": "Organization",
+    "@id": `${BASE_URL}/#org`,
+    name: "ShardVeil",
+  },
+};
+
 // ─── CardsPage ────────────────────────────────────────────────────────────────
 
 export default async function CardsPage() {
@@ -123,6 +152,10 @@ export default async function CardsPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       {/* ── Page header ── */}
       <header className="mb-10 text-center">
         {/* Decorative accent */}

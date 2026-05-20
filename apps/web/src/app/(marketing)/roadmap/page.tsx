@@ -2,12 +2,47 @@ import type { Metadata } from "next";
 
 import { Timeline } from "@/components/marketing/Roadmap/Timeline";
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://shardveil.xyz";
+
 // ─── SEO metadata ─────────────────────────────────────────────────────────────
 
 export const metadata: Metadata = {
   title: "Roadmap",
   description:
     "ShardVeil development roadmap — from core contracts to mainnet launch.",
+  alternates: {
+    canonical: `${BASE_URL}/roadmap`,
+  },
+  openGraph: {
+    title: "ShardVeil Roadmap",
+    description:
+      "ShardVeil development roadmap — from core contracts to mainnet launch.",
+    type: "website",
+    images: [`${BASE_URL}/api/og/landing`],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: [`${BASE_URL}/api/og/landing`],
+  },
+};
+
+// ─── JSON-LD structured data ──────────────────────────────────────────────────
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": `${BASE_URL}/roadmap`,
+  name: "ShardVeil Roadmap",
+  description:
+    "ShardVeil development roadmap — from core contracts to mainnet launch.",
+  url: `${BASE_URL}/roadmap`,
+  publisher: {
+    "@type": "Organization",
+    "@id": `${BASE_URL}/#org`,
+    name: "ShardVeil",
+  },
 };
 
 // ─── RoadmapPage ──────────────────────────────────────────────────────────────
@@ -15,6 +50,10 @@ export const metadata: Metadata = {
 export default function RoadmapPage() {
   return (
     <div className="relative min-h-screen bg-surface-base">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       {/* ── Ambient background blobs ── */}
       <div
         aria-hidden="true"

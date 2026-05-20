@@ -19,11 +19,44 @@ import { LeaderboardTabs } from "./LeaderboardTabs";
 
 export const revalidate = 300; // 5 minutes
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://shardveil.xyz";
+
 // ─── SEO metadata ─────────────────────────────────────────────────────────────
 
 export const metadata: Metadata = {
   title: "Leaderboard | ShardVeil",
   description: "Top players, guilds, and crafters in ShardVeil.",
+  alternates: {
+    canonical: `${BASE_URL}/leaderboard`,
+  },
+  openGraph: {
+    title: "Leaderboard | ShardVeil",
+    description: "Top players, guilds, and crafters in ShardVeil.",
+    type: "website",
+    images: [`${BASE_URL}/api/og/landing`],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: [`${BASE_URL}/api/og/landing`],
+  },
+};
+
+// ─── JSON-LD structured data ──────────────────────────────────────────────────
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": `${BASE_URL}/leaderboard`,
+  name: "Leaderboard | ShardVeil",
+  description: "Top players, guilds, and crafters in ShardVeil.",
+  url: `${BASE_URL}/leaderboard`,
+  publisher: {
+    "@type": "Organization",
+    "@id": `${BASE_URL}/#org`,
+    name: "ShardVeil",
+  },
 };
 
 // ─── API base ─────────────────────────────────────────────────────────────────
@@ -158,6 +191,10 @@ export default async function LeaderboardPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       {/* ── Page header ── */}
       <header className="mb-14 text-center">
         {/* Decorative accent */}
