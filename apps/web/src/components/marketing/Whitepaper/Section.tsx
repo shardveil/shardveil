@@ -55,10 +55,13 @@ export function Section({ section }: SectionProps) {
         </h3>
       )}
 
-      <div
-        className="font-body text-content-secondary leading-relaxed max-w-[65ch] space-y-4"
-        dangerouslySetInnerHTML={{ __html: content }}
-      />
+      <div className="font-body text-content-secondary leading-relaxed max-w-[65ch] space-y-4">
+        {content.split("\n\n").map((paragraph, i) => (
+          <p key={i} className="mb-4 last:mb-0">
+            {paragraph}
+          </p>
+        ))}
+      </div>
     </section>
   );
 }
