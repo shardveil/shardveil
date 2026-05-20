@@ -45,11 +45,13 @@
     "zustand": "4"
   },
   "devDependencies": {
+    "@next/eslint-plugin-next": "^16.2.6",
     "@shardveil/config": "workspace:*",
     "@types/node": "^20.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "autoprefixer": "^10.0.0",
+    "eslint-config-next": "^16.2.6",
     "postcss": "^8.0.0",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.4.0"
