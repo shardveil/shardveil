@@ -44,16 +44,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // ── Dynamic card routes — fetch up to 1000 ───────────────────────────────────
+  // ── Dynamic card routes — fetch up to 100 (API max) ─────────────────────────
   let cardRoutes: MetadataRoute.Sitemap = [];
   try {
-    const res = await fetch(`${API_URL}/cards?limit=1000`, {
+    const res = await fetch(`${API_URL}/cards?pageSize=100`, {
       next: { revalidate: 86400 },
     });
     if (res.ok) {
-      const data = (await res.json()) as { cards: Array<{ id: number }> };
-      cardRoutes = data.cards.map((card) => ({
-        url: `${BASE_URL}/cards/${card.id}`,
+      const data = (await res.json()) as { data: Array<{ cardId: number }> };
+      cardRoutes = data.data.map((card) => ({
+        url: `${BASE_URL}/cards/${card.cardId}`,
         changeFrequency: "weekly" as const,
         priority: 0.6,
       }));

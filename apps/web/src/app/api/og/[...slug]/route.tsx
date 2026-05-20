@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 
+import { truncateAddress } from "@/lib/format";
 import { OG_COLORS, OG_HEIGHT, OG_RARITY_COLORS, OG_WIDTH } from "@/lib/og";
 
 // ─── API ──────────────────────────────────────────────────────────────────────
@@ -479,10 +480,6 @@ function CardOG({ card }: { card: CardDetail }) {
 }
 
 // ─── Profile OG ──────────────────────────────────────────────────────────────
-
-function truncateAddress(address: string): string {
-  return `${address.slice(0, 6)}…${address.slice(-4)}`;
-}
 
 function ProfileOG({ profile }: { profile: ProfileApiResponse }) {
   const displayName = profile.username ?? truncateAddress(profile.address);
