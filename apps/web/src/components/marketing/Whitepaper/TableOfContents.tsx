@@ -16,6 +16,8 @@ export function TableOfContents({ sections }: TableOfContentsProps) {
   const [activeId, setActiveId] = useState<string>("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   // Track which section is currently in view via IntersectionObserver
   useEffect(() => {
@@ -50,6 +52,16 @@ export function TableOfContents({ sections }: TableOfContentsProps) {
 
     return () => observer.disconnect();
   }, [sections]);
+
+  // Focus first link in panel on open; restore trigger on close
+  useEffect(() => {
+    if (mobileOpen) {
+      const firstLink = panelRef.current?.querySelector<HTMLElement>("a");
+      firstLink?.focus();
+    } else {
+      triggerRef.current?.focus();
+    }
+  }, [mobileOpen]);
 
   function handleLinkClick(e: React.MouseEvent<HTMLAnchorElement>, id: string) {
     e.preventDefault();
@@ -117,6 +129,7 @@ export function TableOfContents({ sections }: TableOfContentsProps) {
       {/* ── Mobile floating TOC toggle ── */}
       <div className="lg:hidden fixed bottom-6 right-6 z-40">
         <button
+          ref={triggerRef}
           type="button"
           aria-label={
             mobileOpen ? "Close table of contents" : "Open table of contents"
@@ -144,10 +157,15 @@ export function TableOfContents({ sections }: TableOfContentsProps) {
 
           {/* Panel */}
           <div
+            ref={panelRef}
             id="mobile-toc-panel"
             role="dialog"
             aria-modal="true"
             aria-label="Table of contents"
+            tabIndex={-1}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setMobileOpen(false);
+            }}
             className="lg:hidden fixed bottom-24 right-6 z-40 w-72 max-h-[60vh] overflow-y-auto rounded-xl bg-surface-elevated border border-stroke-base shadow-2xl shadow-veil-950/50 p-5"
           >
             <p className="mb-3 text-xs font-body font-semibold uppercase tracking-widest text-content-muted">
