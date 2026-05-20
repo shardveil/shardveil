@@ -195,7 +195,7 @@ export default async function HallOfFamePage() {
           Top Legends
         </h2>
 
-        {data === null && !apexEntry && !guildEntry && !mythicEntry ? (
+        {data === null ? (
           <LaunchDayEmptyState />
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">

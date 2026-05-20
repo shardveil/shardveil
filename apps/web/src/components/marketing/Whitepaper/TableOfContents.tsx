@@ -127,7 +127,7 @@ export function TableOfContents({ sections }: TableOfContentsProps) {
       </aside>
 
       {/* ── Mobile floating TOC toggle ── */}
-      <div className="lg:hidden fixed bottom-6 right-6 z-40">
+      <div className="lg:hidden print:hidden fixed bottom-6 right-6 z-40">
         <button
           ref={triggerRef}
           type="button"
@@ -151,7 +151,7 @@ export function TableOfContents({ sections }: TableOfContentsProps) {
           {/* Backdrop */}
           <div
             aria-hidden="true"
-            className="lg:hidden fixed inset-0 z-30 bg-black/60 backdrop-blur-sm"
+            className="lg:hidden print:hidden fixed inset-0 z-30 bg-black/60 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
           />
 
@@ -166,7 +166,7 @@ export function TableOfContents({ sections }: TableOfContentsProps) {
             onKeyDown={(e) => {
               if (e.key === "Escape") setMobileOpen(false);
             }}
-            className="lg:hidden fixed bottom-24 right-6 z-40 w-72 max-h-[60vh] overflow-y-auto rounded-xl bg-surface-elevated border border-stroke-base shadow-2xl shadow-veil-950/50 p-5"
+            className="lg:hidden print:hidden fixed bottom-24 right-6 z-40 w-72 max-h-[60vh] overflow-y-auto rounded-xl bg-surface-elevated border border-stroke-base shadow-2xl shadow-veil-950/50 p-5"
           >
             <p className="mb-3 text-xs font-body font-semibold uppercase tracking-widest text-content-muted">
               Contents

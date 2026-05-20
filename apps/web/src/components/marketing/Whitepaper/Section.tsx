@@ -49,7 +49,7 @@ export function Section({ section }: SectionProps) {
       {level === 3 && (
         <h3
           id={`heading-${id}`}
-          className="font-body text-xl text-content-primary font-semibold mb-3 mt-1 text-shard-300"
+          className="font-display text-xl text-content-primary font-semibold mb-3 mt-1 text-shard-300"
         >
           {title}
         </h3>

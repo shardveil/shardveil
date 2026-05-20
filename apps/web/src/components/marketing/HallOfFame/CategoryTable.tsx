@@ -41,16 +41,14 @@ export function CategoryTable({
   rows,
   emptyMessage = "No records yet. The legend has not been written.",
 }: CategoryTableProps) {
-  // Build full column list: Rank + Player + caller-supplied value columns
+  const tableId = `table-title-${title.replace(/\s+/g, "-").toLowerCase()}`;
   const allColumns = ["Rank", "Player", ...columns];
 
   return (
-    <section
-      aria-labelledby={`table-title-${title.replace(/\s+/g, "-").toLowerCase()}`}
-    >
+    <section aria-labelledby={tableId}>
       {/* ── Section heading ── */}
       <h3
-        id={`table-title-${title.replace(/\s+/g, "-").toLowerCase()}`}
+        id={tableId}
         className="mb-3 font-display text-base font-semibold tracking-wider text-gold-300 uppercase"
       >
         {title}
@@ -93,7 +91,7 @@ export function CategoryTable({
             ) : (
               rows.map((row, idx) => (
                 <tr
-                  key={row.playerAddress + row.rank}
+                  key={`${row.playerAddress}-${row.rank}-${idx}`}
                   className={`
                     border-t border-stroke-subtle
                     transition-colors duration-150

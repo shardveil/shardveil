@@ -134,7 +134,7 @@ export function Pedestal({
         relative flex flex-col items-center rounded-xl
         border ${cfg.borderClass} bg-surface-card/60 backdrop-blur-sm
         p-6 ${cfg.heightClass} ${cfg.glowClass}
-        transition-shadow duration-300 hover:shadow-none
+        transition-shadow duration-300 hover:shadow-lg
       `}
     >
       {/* ── Rank badge ── */}

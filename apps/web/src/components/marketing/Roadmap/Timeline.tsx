@@ -4,7 +4,8 @@
 // Desktop: phase cards alternate left/right (odd on left, even on right).
 // Mobile:  all cards stack vertically, timeline line on left.
 
-import { PhaseCard, type PhaseCardProps } from "./PhaseCard";
+import { PhaseCard, type PhaseCardProps, type PhaseStatus } from "./PhaseCard";
+import { PhaseReveal } from "./PhaseReveal";
 
 // ─── Phase data ───────────────────────────────────────────────────────────────
 
@@ -97,7 +98,7 @@ const PHASES: PhaseCardProps[] = [
 
 // ─── Connector dot colour per status ─────────────────────────────────────────
 
-const DOT_CLASS: Record<string, string> = {
+const DOT_CLASS: Record<PhaseStatus, string> = {
   done: "bg-emerald-500 border-emerald-400",
   "in-progress": "bg-yellow-400 border-yellow-300 motion-safe:animate-pulse",
   planned: "bg-zinc-700 border-zinc-500",
@@ -135,7 +136,7 @@ export function Timeline() {
                 aria-hidden="true"
                 className={[
                   "absolute z-10 h-4 w-4 rounded-full border-2 shadow-md",
-                  DOT_CLASS[phase.status] ?? "bg-zinc-700 border-zinc-500",
+                  DOT_CLASS[phase.status],
                   // Mobile: align with left line (left-8 - 8px half-dot)
                   "left-8 top-5 -translate-x-1/2",
                   // Desktop: align with centre line
@@ -150,41 +151,43 @@ export function Timeline() {
                   - even index (isLeft) → card in LEFT half  (pr on right half, card in left)
                   - odd index (!isLeft) → card in RIGHT half (pl on left half, card in right)
               */}
-              <div
-                className={[
-                  // Mobile: all cards right of the line
-                  "pl-16 sm:pl-20",
-                  // Desktop: alternate halves
-                  "md:pl-0 md:pr-0 md:grid md:grid-cols-2 md:gap-10 md:items-center",
-                ].join(" ")}
-              >
-                {/* LEFT slot — only rendered for even-index phases on desktop */}
+              <PhaseReveal delay={index * 120}>
                 <div
                   className={[
-                    "hidden md:block md:pr-6",
-                    isLeft ? "" : "md:invisible md:pointer-events-none",
+                    // Mobile: all cards right of the line
+                    "pl-16 sm:pl-20",
+                    // Desktop: alternate halves
+                    "md:pl-0 md:pr-0 md:grid md:grid-cols-2 md:gap-10 md:items-center",
                   ].join(" ")}
-                  aria-hidden={!isLeft}
                 >
-                  {isLeft && <PhaseCard {...phase} />}
-                </div>
+                  {/* LEFT slot — only rendered for even-index phases on desktop */}
+                  <div
+                    className={[
+                      "hidden md:block md:pr-6",
+                      isLeft ? "" : "md:invisible md:pointer-events-none",
+                    ].join(" ")}
+                    aria-hidden={!isLeft}
+                  >
+                    {isLeft && <PhaseCard {...phase} />}
+                  </div>
 
-                {/* RIGHT slot — only rendered for odd-index phases on desktop */}
-                <div
-                  className={[
-                    "hidden md:block md:pl-6",
-                    !isLeft ? "" : "md:invisible md:pointer-events-none",
-                  ].join(" ")}
-                  aria-hidden={isLeft}
-                >
-                  {!isLeft && <PhaseCard {...phase} />}
-                </div>
+                  {/* RIGHT slot — only rendered for odd-index phases on desktop */}
+                  <div
+                    className={[
+                      "hidden md:block md:pl-6",
+                      !isLeft ? "" : "md:invisible md:pointer-events-none",
+                    ].join(" ")}
+                    aria-hidden={isLeft}
+                  >
+                    {!isLeft && <PhaseCard {...phase} />}
+                  </div>
 
-                {/* MOBILE slot — always shows, hidden on desktop */}
-                <div className="md:hidden">
-                  <PhaseCard {...phase} />
+                  {/* MOBILE slot — always shows, hidden on desktop */}
+                  <div className="md:hidden">
+                    <PhaseCard {...phase} />
+                  </div>
                 </div>
-              </div>
+              </PhaseReveal>
             </li>
           );
         })}
