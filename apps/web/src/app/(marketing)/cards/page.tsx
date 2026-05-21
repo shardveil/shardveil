@@ -39,18 +39,33 @@ export const metadata: Metadata = {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
+const RARITY_NAMES: Record<number, string> = {
+  0: "COMMON",
+  1: "UNCOMMON",
+  2: "RARE",
+  3: "EPIC",
+  4: "LEGENDARY",
+  5: "MYTHIC",
+};
+
 interface CardsApiResponse {
-  cards: Array<{
-    id: number;
-    name: string;
-    rarity: string;
-    imageUrl: string | null;
-    minted: string | number;
-    supplyCap: string | number;
-    power?: number;
+  data: Array<{
+    cardId: number;
+    rarity: number;
+    cardType: number;
+    atkBase: number;
+    defBase: number;
+    spdBase: number;
+    hpBase: number;
+    supplyCap: string;
+    minted: string;
+    active: boolean;
+    poolId: number;
   }>;
   total: number;
   page: number;
+  pageSize: number;
+  cachedAt: string;
 }
 
 // ─── Data fetching ────────────────────────────────────────────────────────────
@@ -60,20 +75,19 @@ async function fetchFirstPage(): Promise<{
   total: number;
 }> {
   try {
-    const res = await fetch(`${API_URL}/cards?limit=24`, {
+    const res = await fetch(`${API_URL}/cards?pageSize=24`, {
       next: { revalidate: 60 },
     });
     if (!res.ok) throw new Error("unavailable");
     const data = (await res.json()) as CardsApiResponse;
     return {
-      cards: data.cards.map((c) => ({
-        id: c.id,
-        name: c.name,
-        rarity: c.rarity,
-        imageUrl: c.imageUrl,
+      cards: data.data.map((c) => ({
+        id: c.cardId,
+        name: `Card #${c.cardId}`,
+        rarity: RARITY_NAMES[c.rarity] ?? "COMMON",
+        imageUrl: null,
         minted: Number(c.minted),
         supplyCap: Number(c.supplyCap),
-        ...(c.power !== undefined ? { power: c.power } : {}),
       })),
       total: data.total,
     };

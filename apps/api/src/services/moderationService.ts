@@ -33,9 +33,31 @@ const DEFAULT_TOXIC_WORDS: string[] = [
 // Module state
 // ---------------------------------------------------------------------------
 
-let toxicWords: string[] = [...DEFAULT_TOXIC_WORDS];
+let toxicWords: string[] = normalizeWordList(DEFAULT_TOXIC_WORDS);
 let listLoaded = false;
 let loadPromise: Promise<void> | null = null;
+
+function normalizeText(input: string): string {
+  return input
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[@]/g, "a")
+    .replace(/[!1|]/g, "i")
+    .replace(/[3]/g, "e")
+    .replace(/[4]/g, "a")
+    .replace(/[5$]/g, "s")
+    .replace(/[0]/g, "o")
+    .replace(/[^a-z0-9\s-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeWordList(words: string[]): string[] {
+  return Array.from(
+    new Set(words.map(normalizeText).filter((word) => word.length > 0)),
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Loader
@@ -62,12 +84,11 @@ async function loadToxicWordList(): Promise<void> {
     const text = await response.text();
     const remote = text
       .split("\n")
-      .map((w) => w.trim().toLowerCase())
+      .map((w) => w.trim())
       .filter((w) => w.length > 0);
 
-    // Merge remote list with defaults (deduplicate)
-    const merged = new Set([...DEFAULT_TOXIC_WORDS, ...remote]);
-    toxicWords = Array.from(merged);
+    // Merge remote list with defaults, then normalize + deduplicate
+    toxicWords = normalizeWordList([...DEFAULT_TOXIC_WORDS, ...remote]);
     logger.info(
       { count: toxicWords.length, url: env.TOXIC_WORDS_LIST_URL },
       "moderation: toxic word list loaded from remote URL",
@@ -121,8 +142,8 @@ export interface FilterResult {
 export async function filterContent(text: string): Promise<FilterResult> {
   await ensureLoaded();
 
-  const lower = text.toLowerCase();
-  const flagged = toxicWords.some((word) => lower.includes(word));
+  const normalized = normalizeText(text);
+  const flagged = toxicWords.some((word) => normalized.includes(word));
 
   return { clean: text, flagged };
 }
@@ -132,7 +153,8 @@ export async function filterContent(text: string): Promise<FilterResult> {
  * Safe to call after the first await on filterContent() or after module init.
  */
 export function filterContentSync(text: string): FilterResult {
-  const lower = text.toLowerCase();
-  const flagged = toxicWords.some((word) => lower.includes(word));
+  const normalized = normalizeText(text);
+  const flagged = toxicWords.some((word) => normalized.includes(word));
+
   return { clean: text, flagged };
 }

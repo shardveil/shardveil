@@ -11,18 +11,33 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 const PAGE_SIZE = 24;
 
+const RARITY_NAMES: Record<number, string> = {
+  0: "COMMON",
+  1: "UNCOMMON",
+  2: "RARE",
+  3: "EPIC",
+  4: "LEGENDARY",
+  5: "MYTHIC",
+};
+
 interface CardsApiResponse {
-  cards: Array<{
-    id: number;
-    name: string;
-    rarity: string;
-    imageUrl: string | null;
-    minted: string | number;
-    supplyCap: string | number;
-    power?: number;
+  data: Array<{
+    cardId: number;
+    rarity: number;
+    cardType: number;
+    atkBase: number;
+    defBase: number;
+    spdBase: number;
+    hpBase: number;
+    supplyCap: string;
+    minted: string;
+    active: boolean;
+    poolId: number;
   }>;
   total: number;
   page: number;
+  pageSize: number;
+  cachedAt: string;
 }
 
 type PageResult = { cards: CardData[]; total: number; page: number };
@@ -39,7 +54,7 @@ async function fetchCards({
   q: string;
 }): Promise<PageResult> {
   const params = new URLSearchParams({
-    limit: String(PAGE_SIZE),
+    pageSize: String(PAGE_SIZE),
     page: String(page),
   });
   rarities.forEach((r) => params.append("rarity", r));
@@ -51,14 +66,13 @@ async function fetchCards({
 
   const data = (await res.json()) as CardsApiResponse;
   return {
-    cards: data.cards.map((c) => ({
-      id: c.id,
-      name: c.name,
-      rarity: c.rarity,
-      imageUrl: c.imageUrl,
+    cards: data.data.map((c) => ({
+      id: c.cardId,
+      name: `Card #${c.cardId}`,
+      rarity: RARITY_NAMES[c.rarity] ?? "COMMON",
+      imageUrl: null,
       minted: Number(c.minted),
       supplyCap: Number(c.supplyCap),
-      ...(c.power !== undefined ? { power: c.power } : {}),
     })),
     total: data.total,
     page: data.page,

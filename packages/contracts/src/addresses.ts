@@ -17,16 +17,16 @@ export function getAddresses(chainId: SupportedChainId) {
 
 export const addresses = {
   [ARBITRUM_SEPOLIA_CHAIN_ID]: {
-    shardToken: "0x46c08085f5871626EB61964B1E251F74F307d22b" as Address,
-    veilToken: "0xE09a03965f3314C4773f48a9dB8949934414D3f8" as Address,
-    cardNFT: "0x6d933be6C432Ae8F119FD6070B43A8754B55376A" as Address,
-    cardRegistry: "0xAA7169B5F674721Fe1d26974D947ab95C00945A9" as Address,
-    ammMarketplace: "0x535326c6fC4A2be86e3dA8A8a56Bf7FBa180Fce9" as Address,
-    battleEngine: "0xd6D952A313fED1999Cd5d3b3CBFDA7f7B1BE478F" as Address,
-    guildSystem: "0x6e56e98ed9551e9cd1a5FB36c3B1E6259D3940C4" as Address,
-    packContract: "0x6dD9E517BEC91F5F22005a361C7754042c20D75d" as Address,
-    treasury: "0xE13905d27C104507C7Cc2626c48E564cF80097F5" as Address,
-    craftingEngine: "0x78B28212bf2835Bd8fFaeD14402BE0F9075C1d75" as Address,
+    shardToken: "0xC774697DABaC34A7509b4E29F774D535ff03Bb6C" as Address,
+    veilToken: "0x1e7be5DDAc6387f5b07857DA61c4A197741cB68d" as Address,
+    cardNFT: "0xbCc261B0f6c8A370b5d35532ABfAaa4958B02Db2" as Address,
+    cardRegistry: "0x6280a634aC9f6B96D3314De3060F30dC7AA9D17e" as Address,
+    ammMarketplace: "0x39dE07c046EE5F66458a0a6e7Ae87e12481e5f87" as Address,
+    battleEngine: "0x58208A44968B31DB1C7fFb107f67E0e458C091BA" as Address,
+    guildSystem: "0x70A9c174B3a17FFa39910C92535374608571C03D" as Address,
+    packContract: "0x4Acd78b844Cb39223C53c7B03086556b005a8E07" as Address,
+    treasury: "0x7e78ac2d7EA123f86C6562BaaEC35ec94928eFDc" as Address,
+    craftingEngine: "0xC711301D09dcD1ba8F3BAb0A0a0D14266532Bd17" as Address,
   },
   [ARBITRUM_ONE_CHAIN_ID]: {
     // Stub — filled in Phase K (mainnet launch)

@@ -15,8 +15,8 @@ interface NonceResponse {
 }
 
 interface VerifyResponse {
-  jwt: string;
-  expiresAt: number;
+  token: string;
+  expiresAt: string; // ISO date string from API
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -95,11 +95,14 @@ export function useAuth() {
       }
 
       // 4. Verify with backend
-      const { jwt, expiresAt } = await api<VerifyResponse>("/auth/verify", {
+      const { token: jwt, expiresAt: expiresAtIso } = await api<VerifyResponse>("/auth/verify", {
         method: "POST",
         skipAuth: true,
         body: JSON.stringify({ message, signature }),
       });
+
+      // Convert ISO string to Unix ms timestamp expected by storeToken/setAuth
+      const expiresAt = new Date(expiresAtIso).getTime();
 
       // 5. Persist: Zustand store + httpOnly cookie
       setAuth(address, jwt, expiresAt);
@@ -121,7 +124,7 @@ export function useAuth() {
     } finally {
       setIsPending(false);
     }
-  }, [address, chainId, signMessageAsync, setAuth, router]);
+  }, [address, chainId, setAuth, router, signMessageAsync, clearAuth]);
 
   const signOut = useCallback(async () => {
     try {
