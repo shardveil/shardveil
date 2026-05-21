@@ -1,6 +1,8 @@
-import { randomUUID } from 'node:crypto';
-import type { MiddlewareHandler } from 'hono';
-import { logger } from '../config/logger';
+import { randomUUID } from "node:crypto";
+
+import type { MiddlewareHandler } from "hono";
+
+import { logger } from "../config/logger";
 
 /**
  * Hono middleware that adds structured request/response logging to every request.
@@ -23,13 +25,13 @@ export const loggerMiddleware: MiddlewareHandler = async (c, next) => {
   const startTime = Date.now();
 
   // Store request ID in context for downstream handlers
-  c.set('requestId', requestId);
+  c.set("requestId", requestId);
 
   // Get client IP (handles forwarded headers in case of reverse proxy)
   const ip =
-    c.req.header('x-forwarded-for')?.split(',')[0] ||
-    c.req.header('x-real-ip') ||
-    'unknown';
+    c.req.header("x-forwarded-for")?.split(",")[0] ||
+    c.req.header("x-real-ip") ||
+    "unknown";
 
   const method = c.req.method;
   const path = c.req.path;
@@ -42,7 +44,7 @@ export const loggerMiddleware: MiddlewareHandler = async (c, next) => {
       path,
       ip,
     },
-    'Request started',
+    "Request started",
   );
 
   try {
@@ -61,7 +63,7 @@ export const loggerMiddleware: MiddlewareHandler = async (c, next) => {
         status,
         durationMs,
       },
-      'Request completed',
+      "Request completed",
     );
   } catch (error) {
     // Log error with full stack trace
@@ -81,10 +83,10 @@ export const loggerMiddleware: MiddlewareHandler = async (c, next) => {
           ...errorLog,
           stack: error.stack,
         },
-        'Request failed with error',
+        "Request failed with error",
       );
     } else {
-      logger.error(errorLog, 'Request failed');
+      logger.error(errorLog, "Request failed");
     }
 
     throw error;

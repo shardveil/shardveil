@@ -12,9 +12,9 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc --build",
+    "build": "tsc --build ../shared tsconfig.json",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist .turbo",
+    "clean": "rm -rf dist .turbo tsconfig.tsbuildinfo",
     "sync-abis": "tsx scripts/sync-abis.ts"
   },
   "dependencies": {

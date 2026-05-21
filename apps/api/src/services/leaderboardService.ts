@@ -8,8 +8,8 @@
  */
 
 import { prisma } from "../config/database";
-import { cacheService } from "./cacheService";
 import { logger } from "../config/logger";
+import { cacheService } from "./cacheService";
 
 /**
  * Ranked leaderboard entry (by seasonExp)
@@ -151,9 +151,7 @@ class LeaderboardService {
    * @param limit - Maximum number of entries to return
    * @returns Crafter leaderboard data with cachedAt timestamp
    */
-  async getCrafters(
-    limit: number,
-  ): Promise<LeaderboardResponse<CrafterEntry>> {
+  async getCrafters(limit: number): Promise<LeaderboardResponse<CrafterEntry>> {
     const cacheKey = "leaderboard:crafters";
 
     const cached = await cacheService.getOrSet(cacheKey, 300, async () => {

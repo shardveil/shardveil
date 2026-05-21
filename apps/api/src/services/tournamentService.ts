@@ -79,13 +79,15 @@ async function loadPairings(
 // Shuffle helper (Fisher-Yates)
 // ---------------------------------------------------------------------------
 
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
+function shuffle<T>(items: readonly T[]): T[] {
+  const copy = [...items];
+
+  for (let i = copy.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j]!, a[i]!];
+    [copy[i], copy[j]] = [copy[j]!, copy[i]!];
   }
-  return a;
+
+  return copy;
 }
 
 // ---------------------------------------------------------------------------
@@ -112,7 +114,9 @@ async function generateBracket(tournamentId: string): Promise<void> {
     include: { players: true },
   });
 
-  const playerAddresses = tournament.players.map((p) => p.playerAddress);
+  const playerAddresses: string[] = tournament.players.map(
+    (p: { playerAddress: string }) => p.playerAddress,
+  );
 
   if (playerAddresses.length < 2) {
     throw new Error(

@@ -21,9 +21,25 @@
     "typescript-eslint": "^8"
   },
   "peerDependenciesMeta": {
-    "eslint-plugin-react": { "optional": true },
-    "eslint-plugin-react-hooks": { "optional": true },
-    "eslint-plugin-simple-import-sort": { "optional": true },
-    "typescript-eslint": { "optional": true }
+    "eslint-plugin-react": {
+      "optional": true
+    },
+    "eslint-plugin-react-hooks": {
+      "optional": true
+    },
+    "eslint-plugin-simple-import-sort": {
+      "optional": true
+    },
+    "typescript-eslint": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@next/eslint-plugin-next": "^16.2.6",
+    "eslint": "^10.4.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-simple-import-sort": "^13.0.0",
+    "typescript-eslint": "^8.59.4"
   }
 }

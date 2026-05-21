@@ -11,15 +11,14 @@
 import { Hono } from "hono";
 import { z } from "zod";
 
-import { ApiError, ValidationError, NotFoundError } from "../lib/errors";
-import { requireAuth, optionalAuth } from "../middleware/auth";
+import { NotFoundError, ValidationError } from "../lib/errors";
+import { optionalAuth, requireAuth } from "../middleware/auth";
 import {
-  getProfile,
-  updateProfile,
-  updateAvatar,
   checkUsernameAvailable,
+  getProfile,
   type ProfileData,
-  type ProfileUpdateInput,
+  updateAvatar,
+  updateProfile,
 } from "../services/profileService";
 
 const profileRouter = new Hono();
@@ -196,9 +195,7 @@ profileRouter.get("/check-username/:name", async (c) => {
 
   // Validate username format: 3-20 alphanumeric chars
   if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
-    throw new ValidationError(
-      "Username must be 3-20 alphanumeric characters",
-    );
+    throw new ValidationError("Username must be 3-20 alphanumeric characters");
   }
 
   const available = await checkUsernameAvailable(username);

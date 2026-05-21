@@ -1,5 +1,6 @@
-import pino, { type Logger } from 'pino';
-import { env } from './env';
+import pino, { type Logger } from "pino";
+
+import { env } from "./env";
 
 /**
  * Pino logger singleton with environment-aware configuration.
@@ -17,21 +18,21 @@ import { env } from './env';
  * - Cookie header
  */
 
-const isProduction = env.NODE_ENV === 'production';
+const isProduction = env.NODE_ENV === "production";
 
 const pinoConfig = {
-  level: env.NODE_ENV === 'test' ? 'silent' : 'info',
+  level: env.NODE_ENV === "test" ? "silent" : "info",
   redact: {
     paths: [
-      'JWT_SECRET',
-      'SETTLER_PRIVATE_KEY',
-      'WAR_ORACLE_PRIVATE_KEY',
-      'TOURNAMENT_ORACLE_PRIVATE_KEY',
-      'XP_ORACLE_PRIVATE_KEY',
-      'req.headers.authorization',
-      'req.headers.cookie',
+      "JWT_SECRET",
+      "SETTLER_PRIVATE_KEY",
+      "WAR_ORACLE_PRIVATE_KEY",
+      "TOURNAMENT_ORACLE_PRIVATE_KEY",
+      "XP_ORACLE_PRIVATE_KEY",
+      "req.headers.authorization",
+      "req.headers.cookie",
     ],
-    censor: '[Redacted]',
+    censor: "[Redacted]",
   },
 };
 
@@ -40,11 +41,11 @@ export const logger: Logger = isProduction
   : pino(
       pinoConfig,
       pino.transport({
-        target: 'pino-pretty',
+        target: "pino-pretty",
         options: {
           colorize: true,
-          translateTime: 'SYS:standard',
-          ignore: 'pid,hostname',
+          translateTime: "SYS:standard",
+          ignore: "pid,hostname",
         },
       }),
     );

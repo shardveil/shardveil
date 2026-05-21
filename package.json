@@ -2,7 +2,7 @@
   "private": true,
   "name": "shardveil",
   "type": "module",
-  "packageManager": "pnpm@9.15.4",
+  "packageManager": "pnpm@10.0.0",
   "devDependencies": {
     "@commitlint/cli": "^21.0.1",
     "@commitlint/config-conventional": "^21.0.1",
@@ -27,7 +27,7 @@
   },
   "lint-staged": {
     "{apps,packages}/**/*.{ts,tsx,js}": [
-      "eslint --fix",
+      "pnpm lint -- --fix",
       "prettier --write"
     ],
     "*.{json,md}": [

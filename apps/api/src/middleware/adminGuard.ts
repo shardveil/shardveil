@@ -1,5 +1,3 @@
-import type { MiddlewareHandler } from "hono";
-
 import {
   ammMarketplaceAbi,
   ARBITRUM_SEPOLIA_CHAIN_ID,
@@ -7,34 +5,65 @@ import {
   cardNftAbi,
   cardRegistryAbi,
   craftingEngineAbi,
-  guildSystemAbi,
   getAddresses,
+  guildSystemAbi,
   packContractAbi,
   shardTokenAbi,
   treasuryAbi,
   veilTokenAbi,
 } from "@shardveil/contracts";
+import type { MiddlewareHandler } from "hono";
 
 import { logger } from "../config/logger";
 import { publicClient } from "../config/viem";
-import { cacheService } from "../services/cacheService";
 import { ForbiddenError, UnauthorizedError } from "../lib/errors";
+import { cacheService } from "../services/cacheService";
 
 /**
  * Map of contract names to their ABIs and addresses.
  * Used by requireRole to resolve role hashes and check permissions on-chain.
  */
 const CONTRACT_ABI_MAP = {
-  cardRegistry: { abi: cardRegistryAbi, address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).cardRegistry },
-  guildSystem: { abi: guildSystemAbi, address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).guildSystem },
-  ammMarketplace: { abi: ammMarketplaceAbi, address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).ammMarketplace },
-  battleEngine: { abi: battleEngineAbi, address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).battleEngine },
-  shardToken: { abi: shardTokenAbi, address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).shardToken },
-  veilToken: { abi: veilTokenAbi, address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).veilToken },
-  cardNFT: { abi: cardNftAbi, address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).cardNFT },
-  packContract: { abi: packContractAbi, address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).packContract },
-  treasury: { abi: treasuryAbi, address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).treasury },
-  craftingEngine: { abi: craftingEngineAbi, address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).craftingEngine },
+  cardRegistry: {
+    abi: cardRegistryAbi,
+    address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).cardRegistry,
+  },
+  guildSystem: {
+    abi: guildSystemAbi,
+    address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).guildSystem,
+  },
+  ammMarketplace: {
+    abi: ammMarketplaceAbi,
+    address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).ammMarketplace,
+  },
+  battleEngine: {
+    abi: battleEngineAbi,
+    address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).battleEngine,
+  },
+  shardToken: {
+    abi: shardTokenAbi,
+    address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).shardToken,
+  },
+  veilToken: {
+    abi: veilTokenAbi,
+    address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).veilToken,
+  },
+  cardNFT: {
+    abi: cardNftAbi,
+    address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).cardNFT,
+  },
+  packContract: {
+    abi: packContractAbi,
+    address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).packContract,
+  },
+  treasury: {
+    abi: treasuryAbi,
+    address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).treasury,
+  },
+  craftingEngine: {
+    abi: craftingEngineAbi,
+    address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).craftingEngine,
+  },
 } as const;
 
 type AdminContractName = keyof typeof CONTRACT_ABI_MAP;
@@ -75,11 +104,11 @@ async function resolveRoleHash(
   roleName: string,
 ): Promise<`0x${string}`> {
   try {
-    const roleHash = await publicClient.readContract({
+    const roleHash = (await publicClient.readContract({
       address: contractAddress,
       abi: abi as any,
       functionName: roleName as any,
-    }) as `0x${string}`;
+    })) as `0x${string}`;
 
     return roleHash;
   } catch (err) {
@@ -112,12 +141,12 @@ async function checkRole(
   address: `0x${string}`,
 ): Promise<boolean> {
   try {
-    const hasRole = await publicClient.readContract({
+    const hasRole = (await publicClient.readContract({
       address: contractAddress,
       abi: abi as any,
       functionName: "hasRole",
       args: [roleHash, address],
-    }) as boolean;
+    })) as boolean;
 
     return hasRole;
   } catch (err) {
