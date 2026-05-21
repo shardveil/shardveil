@@ -95,11 +95,14 @@ export function useAuth() {
       }
 
       // 4. Verify with backend
-      const { token: jwt, expiresAt: expiresAtIso } = await api<VerifyResponse>("/auth/verify", {
-        method: "POST",
-        skipAuth: true,
-        body: JSON.stringify({ message, signature }),
-      });
+      const { token: jwt, expiresAt: expiresAtIso } = await api<VerifyResponse>(
+        "/auth/verify",
+        {
+          method: "POST",
+          skipAuth: true,
+          body: JSON.stringify({ message, signature }),
+        },
+      );
 
       // Convert ISO string to Unix ms timestamp expected by storeToken/setAuth
       const expiresAt = new Date(expiresAtIso).getTime();
