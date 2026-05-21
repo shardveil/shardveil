@@ -1,0 +1,142 @@
+/* ============================================================
+   ShardVeil Animation Library
+   Keyframe definitions for card game UI interactions
+   ============================================================ */
+
+/* ----------------------------------------------------------
+   CARD FLIP
+   Used when revealing a card from pack opening
+   ---------------------------------------------------------- */
+@keyframes card-flip {
+  0%   { transform: rotateY(0deg);   }
+  50%  { transform: rotateY(90deg);  }
+  100% { transform: rotateY(0deg);   }
+}
+
+/* ----------------------------------------------------------
+   PITY TRIGGER
+   Brief flash when the pity counter activates a guaranteed drop
+   ---------------------------------------------------------- */
+@keyframes pity-trigger {
+  0%, 100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.05);
+    filter: brightness(1.4);
+  }
+}
+
+/* ----------------------------------------------------------
+   RARITY SHIMMER
+   Animated gradient sweep for rare+ cards
+   ---------------------------------------------------------- */
+@keyframes rarity-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* ----------------------------------------------------------
+   GLOW PULSE
+   Breathing glow effect on highlighted elements
+   ---------------------------------------------------------- */
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 0.8;
+    box-shadow: 0 0 8px 2px rgb(var(--veil-500-rgb) / 0.4);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 20px 6px rgb(var(--veil-500-rgb) / 0.8);
+  }
+}
+
+/* ----------------------------------------------------------
+   SPARKLE
+   Small particle burst for mythic reveals
+   ---------------------------------------------------------- */
+@keyframes sparkle {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(1.2) rotate(180deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(0) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* ----------------------------------------------------------
+   PAGE FADE IN
+   Smooth entry transition between routes
+   ---------------------------------------------------------- */
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ----------------------------------------------------------
+   ANIMATION UTILITY CLASSES
+   ---------------------------------------------------------- */
+.animate-card-flip {
+  animation: card-flip 0.6s ease-in-out;
+}
+
+.animate-pity-trigger {
+  animation: pity-trigger 0.4s ease-in-out;
+}
+
+.animate-rarity-shimmer {
+  background-size: 200% auto;
+  animation: rarity-shimmer 2s linear infinite;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-sparkle {
+  animation: sparkle 0.8s var(--ease-elastic) forwards;
+}
+
+.animate-page-fade-in {
+  animation: page-fade-in 0.3s var(--ease-out-slow) both;
+}
+
+/* ----------------------------------------------------------
+   REDUCED MOTION — Disable all animations
+   ---------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-card-flip,
+  .animate-pity-trigger,
+  .animate-rarity-shimmer,
+  .animate-glow-pulse,
+  .animate-sparkle,
+  .animate-page-fade-in {
+    animation: none !important;
+  }
+}

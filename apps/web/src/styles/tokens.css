@@ -1,0 +1,228 @@
+/* ============================================================
+   ShardVeil Design Tokens
+   Dark fantasy color system, spacing, typography, and animation
+   ============================================================ */
+
+:root {
+  /* ----------------------------------------------------------
+     VEIL — Deep Purple Scale
+     ---------------------------------------------------------- */
+  --veil-50:  #f5f0ff;
+  --veil-100: #ede0ff;
+  --veil-200: #d8c0fe;
+  --veil-300: #bc94fd;
+  --veil-400: #9b5ffa;
+  --veil-500: #7c3aed;
+  --veil-600: #6620d4;
+  --veil-700: #5215b0;
+  --veil-800: #3d1290;
+  --veil-900: #2a0a6a;
+  --veil-950: #1a0a2e;
+  /* RGB channels for opacity modifier support */
+  --veil-50-rgb:  245 240 255;
+  --veil-100-rgb: 237 224 255;
+  --veil-200-rgb: 216 192 254;
+  --veil-300-rgb: 188 148 253;
+  --veil-400-rgb: 155 95 250;
+  --veil-500-rgb: 124 58 237;
+  --veil-600-rgb: 102 32 212;
+  --veil-700-rgb: 82 21 176;
+  --veil-800-rgb: 61 18 144;
+  --veil-900-rgb: 42 10 106;
+  --veil-950-rgb: 26 10 46;
+
+  /* ----------------------------------------------------------
+     SHARD — Cyan/Teal Scale
+     ---------------------------------------------------------- */
+  --shard-50:  #eff6ff;
+  --shard-100: #dbeafe;
+  --shard-200: #bfdbfe;
+  --shard-300: #93c5fd;
+  --shard-400: #60a5fa;
+  --shard-500: #3b82f6;
+  --shard-600: #2563eb;
+  --shard-700: #1d4ed8;
+  --shard-800: #1e3a8a;
+  --shard-900: #162d6b;
+  --shard-950: #0c1445;
+  /* RGB channels for opacity modifier support */
+  --shard-50-rgb:  239 246 255;
+  --shard-100-rgb: 219 234 254;
+  --shard-200-rgb: 191 219 254;
+  --shard-300-rgb: 147 197 253;
+  --shard-400-rgb: 96 165 250;
+  --shard-500-rgb: 59 130 246;
+  --shard-600-rgb: 37 99 235;
+  --shard-700-rgb: 29 78 216;
+  --shard-800-rgb: 30 58 138;
+  --shard-900-rgb: 22 45 107;
+  --shard-950-rgb: 12 20 69;
+
+  /* ----------------------------------------------------------
+     GOLD — Legendary Glow (Amber/Gold Scale)
+     ---------------------------------------------------------- */
+  --gold-50:  #fffbeb;
+  --gold-100: #fef3c7;
+  --gold-200: #fde68a;
+  --gold-300: #fcd34d;
+  --gold-400: #fbbf24;
+  --gold-500: #f59e0b;
+  --gold-600: #d97706;
+  --gold-700: #b45309;
+  --gold-800: #92400e;
+  --gold-900: #78350f;
+  --gold-950: #451a03;
+  /* RGB channels for opacity modifier support */
+  --gold-50-rgb:  255 251 235;
+  --gold-100-rgb: 254 243 199;
+  --gold-200-rgb: 253 230 138;
+  --gold-300-rgb: 252 211 77;
+  --gold-400-rgb: 251 191 36;
+  --gold-500-rgb: 245 158 11;
+  --gold-600-rgb: 217 119 6;
+  --gold-700-rgb: 180 83 9;
+  --gold-800-rgb: 146 64 14;
+  --gold-900-rgb: 120 53 15;
+  --gold-950-rgb: 69 26 3;
+
+  /* ----------------------------------------------------------
+     BLOOD — Battle Accent (Red Scale)
+     ---------------------------------------------------------- */
+  --blood-50:  #fff1f2;
+  --blood-100: #ffe4e6;
+  --blood-200: #fecdd3;
+  --blood-300: #fda4af;
+  --blood-400: #fb7185;
+  --blood-500: #f43f5e;
+  --blood-600: #e11d48;
+  --blood-700: #be123c;
+  --blood-800: #9f1239;
+  --blood-900: #881337;
+  --blood-950: #4c0519;
+  /* RGB channels for opacity modifier support */
+  --blood-50-rgb:  255 241 242;
+  --blood-100-rgb: 255 228 230;
+  --blood-200-rgb: 254 205 211;
+  --blood-300-rgb: 253 164 175;
+  --blood-400-rgb: 251 113 133;
+  --blood-500-rgb: 244 63 94;
+  --blood-600-rgb: 225 29 72;
+  --blood-700-rgb: 190 18 60;
+  --blood-800-rgb: 159 18 57;
+  --blood-900-rgb: 136 19 55;
+  --blood-950-rgb: 76 5 25;
+
+  /* ----------------------------------------------------------
+     MYTHIC — Rainbow Shimmer Base (Pink/Rose Scale)
+     ---------------------------------------------------------- */
+  --mythic-50:  #fdf2f8;
+  --mythic-100: #fce7f3;
+  --mythic-200: #fbcfe8;
+  --mythic-300: #f9a8d4;
+  --mythic-400: #f472b6;
+  --mythic-500: #ec4899;
+  --mythic-600: #db2777;
+  --mythic-700: #be185d;
+  --mythic-800: #9d174d;
+  --mythic-900: #831843;
+  --mythic-950: #4c0519;
+  /* RGB channels for opacity modifier support */
+  --mythic-50-rgb:  253 242 248;
+  --mythic-100-rgb: 252 231 243;
+  --mythic-200-rgb: 251 207 232;
+  --mythic-300-rgb: 249 168 212;
+  --mythic-400-rgb: 244 114 182;
+  --mythic-500-rgb: 236 72 153;
+  --mythic-600-rgb: 219 39 119;
+  --mythic-700-rgb: 190 24 93;
+  --mythic-800-rgb: 157 23 77;
+  --mythic-900-rgb: 131 24 67;
+  --mythic-950-rgb: 76 5 25;
+
+  /* ----------------------------------------------------------
+     SEMANTIC BACKGROUNDS
+     ---------------------------------------------------------- */
+  --surface-base:     #0d0a1a;
+  --surface-elevated: #160f2e;
+  --surface-overlay:  #1e1540;
+  --surface-card:     #1a1035;
+
+  /* ----------------------------------------------------------
+     SEMANTIC TEXT
+     ---------------------------------------------------------- */
+  --content-primary:   #f0e8ff;
+  --content-secondary: #b89fd8;
+  --content-muted:     #7a6a99;
+
+  /* ----------------------------------------------------------
+     SEMANTIC BORDERS
+     ---------------------------------------------------------- */
+  --stroke-base:     rgba(124, 58, 237, 0.2);
+  --stroke-emphasis: rgba(124, 58, 237, 0.6);
+
+  /* ----------------------------------------------------------
+     SPACING TOKENS
+     ---------------------------------------------------------- */
+  --spacing-tight:   4px;
+  --spacing-default: 8px;
+  --spacing-loose:   16px;
+  --spacing-section: 64px;
+
+  /* ----------------------------------------------------------
+     TYPOGRAPHY SCALE
+     ---------------------------------------------------------- */
+  /* Display sizes */
+  --type-display-1-size:   clamp(3rem, 6vw, 5rem);
+  --type-display-1-height: 1.05;
+  --type-display-1-weight: 700;
+
+  --type-display-2-size:   clamp(2.25rem, 4.5vw, 3.75rem);
+  --type-display-2-height: 1.08;
+  --type-display-2-weight: 700;
+
+  --type-display-3-size:   clamp(1.75rem, 3.5vw, 2.75rem);
+  --type-display-3-height: 1.1;
+  --type-display-3-weight: 600;
+
+  --type-display-4-size:   clamp(1.375rem, 2.5vw, 2rem);
+  --type-display-4-height: 1.15;
+  --type-display-4-weight: 600;
+
+  /* Body sizes */
+  --type-body-lg-size:   1.125rem;
+  --type-body-lg-height: 1.6;
+  --type-body-lg-weight: 400;
+
+  --type-body-size:   1rem;
+  --type-body-height: 1.6;
+  --type-body-weight: 400;
+
+  --type-body-sm-size:   0.875rem;
+  --type-body-sm-height: 1.5;
+  --type-body-sm-weight: 400;
+
+  --type-caption-size:   0.75rem;
+  --type-caption-height: 1.4;
+  --type-caption-weight: 500;
+
+  --type-mono-size:   0.875rem;
+  --type-mono-height: 1.5;
+  --type-mono-weight: 400;
+
+  /* ----------------------------------------------------------
+     ANIMATION EASING TOKENS
+     ---------------------------------------------------------- */
+  --ease-in-fast:  cubic-bezier(0.4, 0, 1, 1);
+  --ease-out-slow: cubic-bezier(0, 0, 0.2, 1);
+  --ease-elastic:  cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ----------------------------------------------------------
+     RARITY GLOW COLORS (used in safelist utilities)
+     ---------------------------------------------------------- */
+  --rarity-common:    #9ca3af;
+  --rarity-uncommon:  #22c55e;
+  --rarity-rare:      #3b82f6;
+  --rarity-epic:      #a855f7;
+  --rarity-legendary: #f59e0b;
+  --rarity-mythic:    #ec4899;
+}

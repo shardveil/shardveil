@@ -7,15 +7,11 @@
  * GET /:cardId/price-history — price history (stub, data not available)
  */
 
+import { type CardRarity } from "@shardveil/shared";
 import { Hono } from "hono";
 
 import { ValidationError } from "../lib/errors";
-import {
-  getCardList,
-  getCardDetail,
-  type CardListResult,
-  type CardDetail,
-} from "../services/cardService";
+import { getCardDetail, getCardList } from "../services/cardService";
 
 const cardsRouter = new Hono();
 
@@ -42,18 +38,28 @@ function parsePositiveInt(
 }
 
 /**
- * Parse rarity (0-4) from string.
+ * Parse rarity (0-5) from string.
  * Throws ValidationError if not in valid range.
  */
-function parseRarity(value: string | undefined): number | undefined {
-  if (value === undefined) return undefined;
 
-  const parsed = parseInt(value, 10);
-  if (isNaN(parsed) || parsed < 0 || parsed > 4) {
-    throw new ValidationError("Rarity must be 0-4 (COMMON to LEGENDARY)");
+function parseRarity(value?: string): number | undefined {
+  const rarityMap: Record<CardRarity, number> = {
+    COMMON: 0,
+    UNCOMMON: 1,
+    RARE: 2,
+    EPIC: 3,
+    LEGENDARY: 4,
+    MYTHIC: 5,
+  };
+
+  if (value === undefined) return undefined;
+  if (!(value in rarityMap)) {
+    throw new ValidationError(
+      "rarity must be one of: COMMON, UNCOMMON, RARE, EPIC, LEGENDARY, MYTHIC",
+    );
   }
 
-  return parsed;
+  return rarityMap[value as CardRarity];
 }
 
 /**
@@ -87,24 +93,6 @@ function parsePageSize(value: string | undefined): number {
   }
 
   return Math.min(parsed, MAX_PAGE_SIZE);
-}
-
-/**
- * Parse limit for holders/price-history endpoints.
- * Defaults to 20, clamped to max 100.
- */
-function parseLimit(value: string | undefined): number {
-  const DEFAULT_LIMIT = 20;
-  const MAX_LIMIT = 100;
-
-  if (value === undefined) return DEFAULT_LIMIT;
-
-  const parsed = parseInt(value, 10);
-  if (isNaN(parsed) || parsed < 1) {
-    throw new ValidationError("Limit must be >= 1");
-  }
-
-  return Math.min(parsed, MAX_LIMIT);
 }
 
 // ============================================================================

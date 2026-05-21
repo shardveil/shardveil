@@ -1,4 +1,6 @@
-import { z } from 'zod';
+import "dotenv/config";
+
+import { z } from "zod";
 
 /**
  * Environment variables schema for ShardVeil API.
@@ -9,8 +11,8 @@ import { z } from 'zod';
 const envSchema = z.object({
   // Server
   NODE_ENV: z
-    .enum(['development', 'production', 'test'])
-    .default('development'),
+    .enum(["development", "production", "test"])
+    .default("development"),
   PORT: z.coerce.number().int().min(1).max(65535).default(3001),
 
   // Database (PostgreSQL via Prisma)
@@ -20,8 +22,10 @@ const envSchema = z.object({
   REDIS_URL: z.string().url(),
 
   // JWT / Auth
-  JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
-  JWT_EXPIRES_IN: z.string().regex(/^\d+[smhd]$/, 'JWT_EXPIRES_IN must be like 7d, 24h, 3600s'),
+  JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
+  JWT_EXPIRES_IN: z
+    .string()
+    .regex(/^\d+[smhd]$/, "JWT_EXPIRES_IN must be like 7d, 24h, 3600s"),
 
   // Ethereum / EVM (on-chain features)
   // Arbitrum mainnet RPC
@@ -35,22 +39,22 @@ const envSchema = z.object({
   // Optional in dev/test environments, but typed strictly
   SETTLER_PRIVATE_KEY: z
     .string()
-    .regex(/^0x[0-9a-fA-F]{64}$/, 'Must be 0x-prefixed 64 hex characters')
+    .regex(/^0x[0-9a-fA-F]{64}$/, "Must be 0x-prefixed 64 hex characters")
     .optional(),
 
   WAR_ORACLE_PRIVATE_KEY: z
     .string()
-    .regex(/^0x[0-9a-fA-F]{64}$/, 'Must be 0x-prefixed 64 hex characters')
+    .regex(/^0x[0-9a-fA-F]{64}$/, "Must be 0x-prefixed 64 hex characters")
     .optional(),
 
   TOURNAMENT_ORACLE_PRIVATE_KEY: z
     .string()
-    .regex(/^0x[0-9a-fA-F]{64}$/, 'Must be 0x-prefixed 64 hex characters')
+    .regex(/^0x[0-9a-fA-F]{64}$/, "Must be 0x-prefixed 64 hex characters")
     .optional(),
 
   XP_ORACLE_PRIVATE_KEY: z
     .string()
-    .regex(/^0x[0-9a-fA-F]{64}$/, 'Must be 0x-prefixed 64 hex characters')
+    .regex(/^0x[0-9a-fA-F]{64}$/, "Must be 0x-prefixed 64 hex characters")
     .optional(),
 
   // Frontend
@@ -64,13 +68,13 @@ const envSchema = z.object({
 
   // Sentry (error tracking) - optional
   SENTRY_DSN: z.preprocess(
-    (val) => (val === '' ? undefined : val),
+    (val) => (val === "" ? undefined : val),
     z.string().url().optional(),
   ),
 
   // Toxic words list - optional
   TOXIC_WORDS_LIST_URL: z.preprocess(
-    (val) => (val === '' ? undefined : val),
+    (val) => (val === "" ? undefined : val),
     z.string().url().optional(),
   ),
 });
@@ -90,13 +94,13 @@ function parseEnv(): Env {
 
     for (const [field, messages] of Object.entries(errors)) {
       if (messages && messages.length > 0) {
-        errorMessages.push(`  ${field}: ${messages.join(', ')}`);
+        errorMessages.push(`  ${field}: ${messages.join(", ")}`);
       }
     }
 
     console.error(
-      'Environment validation failed. Missing or invalid variables:\n' +
-        errorMessages.join('\n'),
+      "Environment validation failed. Missing or invalid variables:\n" +
+        errorMessages.join("\n"),
     );
 
     process.exit(1);

@@ -1,0 +1,104 @@
+/**
+ * Indexer Status Script — Task 4.7
+ *
+ * Usage:
+ *   tsx scripts/indexer-status.ts
+ *
+ * Prints a table showing, for each indexed contract:
+ *   - contractName
+ *   - lastBlock (from Redis `indexer:lastBlock:{name}`)
+ *   - currentBlock (from the chain)
+ *   - lag (currentBlock - lastBlock)
+ */
+
+import { redis } from "../src/config/redis";
+import { publicClient } from "../src/config/viem";
+import { INDEXED_CONTRACT_NAMES } from "../src/workers/eventIndexer";
+
+type ContractName = (typeof INDEXED_CONTRACT_NAMES)[number];
+
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
+
+async function main(): Promise<void> {
+  // Fetch current block number from the chain
+  const currentBlock = await publicClient.getBlockNumber();
+
+  // Fetch last indexed block for each contract from Redis
+  const lastBlockValues = await Promise.all(
+    INDEXED_CONTRACT_NAMES.map((name) =>
+      redis.get(`indexer:lastBlock:${name}`).then((v) => ({ name, value: v })),
+    ),
+  );
+
+  // Build rows for the table
+  const rows: {
+    contractName: ContractName;
+    lastBlock: string;
+    currentBlock: string;
+    lag: string;
+    lagValue: bigint | null;
+  }[] = lastBlockValues.map(({ name, value }) => {
+    const lastBlock = value !== null ? BigInt(value) : null;
+    const lagValue = lastBlock !== null ? currentBlock - lastBlock : null;
+    const lag = lagValue !== null ? lagValue.toString() : "N/A";
+
+    return {
+      contractName: name,
+      lastBlock: lastBlock !== null ? lastBlock.toString() : "N/A",
+      currentBlock: currentBlock.toString(),
+      lag,
+      lagValue,
+    };
+  });
+
+  // Print table
+  const col = (s: string, width: number): string => s.padEnd(width);
+
+  const header = [
+    col("contractName", 20),
+    col("lastBlock", 14),
+    col("currentBlock", 14),
+    col("lag", 10),
+  ].join("  ");
+
+  const separator = "-".repeat(header.length);
+
+  console.log("\nIndexer Status");
+  console.log(separator);
+  console.log(header);
+  console.log(separator);
+
+  for (const row of rows) {
+    console.log(
+      [
+        col(row.contractName, 20),
+        col(row.lastBlock, 14),
+        col(row.currentBlock, 14),
+        col(row.lag, 10),
+      ].join("  "),
+    );
+  }
+
+  console.log(separator);
+  console.log(`Current block: ${currentBlock.toString()}`);
+
+  // Summary: count contracts in sync (lag < 10)
+  const inSyncCount = rows.filter(
+    (r) => r.lagValue !== null && r.lagValue < 10n,
+  ).length;
+  const total = rows.length;
+  console.log(
+    `\nIndexer health: ${inSyncCount}/${total} contracts in sync (lag < 10)\n`,
+  );
+}
+
+main()
+  .catch((err) => {
+    console.error("indexer-status: fatal error", err);
+    process.exitCode = 1;
+  })
+  .finally(async () => {
+    await Promise.allSettled([redis.quit()]);
+  });

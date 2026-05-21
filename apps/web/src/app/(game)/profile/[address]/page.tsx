@@ -1,0 +1,104 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { cache } from "react";
+
+import {
+  type ProfileApiResponse,
+  PublicProfile,
+} from "@/components/profile/PublicProfile";
+import { truncateAddress } from "@/lib/format";
+
+// ─── Revalidation ─────────────────────────────────────────────────────────────
+
+export const revalidate = 300;
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://shardveil.xyz";
+
+// ─── API ──────────────────────────────────────────────────────────────────────
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+
+// ─── Data fetching ────────────────────────────────────────────────────────────
+
+const fetchProfile = cache(
+  async (address: string): Promise<ProfileApiResponse | null> => {
+    const res = await fetch(`${API_URL}/profile/${address}`, {
+      next: { revalidate: 300 },
+    });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`Profile fetch failed: ${res.status}`);
+    return (await res.json()) as ProfileApiResponse;
+  },
+);
+
+// ─── Dynamic metadata ─────────────────────────────────────────────────────────
+
+interface PageProps {
+  params: Promise<{ address: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { address } = await params;
+  const profile = await fetchProfile(address);
+
+  if (!profile) {
+    return { title: "Profile Not Found | ShardVeil" };
+  }
+
+  const displayName = profile.username ?? truncateAddress(profile.address);
+  const ogImage = `${BASE_URL}/api/og/profile/${address}`;
+
+  return {
+    title: `${displayName} | ShardVeil Profile`,
+    description: profile.bio
+      ? profile.bio.slice(0, 155).replace(/\n/g, " ")
+      : `View ${displayName}'s ShardVeil profile.`,
+    alternates: {
+      canonical: `${BASE_URL}/profile/${address}`,
+    },
+    openGraph: {
+      title: `${displayName} | ShardVeil Profile`,
+      description: `View ${displayName}'s ShardVeil profile.`,
+      images: [ogImage],
+      type: "profile",
+    },
+    twitter: {
+      card: "summary_large_image",
+      images: [ogImage],
+    },
+  };
+}
+
+// ─── ProfilePage ──────────────────────────────────────────────────────────────
+
+export default async function ProfilePage({ params }: PageProps) {
+  const { address } = await params;
+  const profile = await fetchProfile(address);
+
+  if (!profile) {
+    notFound();
+  }
+
+  const displayName = profile.username ?? truncateAddress(profile.address);
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: displayName,
+    url: `${BASE_URL}/profile/${address}`,
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <PublicProfile profile={profile} />
+    </>
+  );
+}
