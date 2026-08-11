@@ -1,0 +1,67 @@
+# Render Blueprint — @shardveil/api
+#
+# Postgres and Redis are deliberately NOT Render services:
+#   - Render's free Postgres is deleted permanently after 30 days
+#   - Render's free Key Value loses all data on restart, and BullMQ queues live there
+# Use Neon (Postgres) and Upstash (Redis) instead; both have persistent free tiers.
+#
+# Apply: Render dashboard -> New -> Blueprint -> pick this repo.
+# Every `sync: false` var is prompted for at apply time and never stored in git.
+
+services:
+  - type: web
+    name: shardveil-api
+    runtime: node
+    plan: free
+    region: singapore
+    # Build from the repo root — pnpm workspaces need the root lockfile, and
+    # turbo builds @shardveil/shared + @shardveil/contracts first (^build).
+    buildCommand: >-
+      corepack enable &&
+      pnpm install --frozen-lockfile &&
+      pnpm turbo build --filter=@shardveil/api &&
+      pnpm --filter @shardveil/api exec prisma migrate deploy
+    startCommand: node apps/api/dist/index.js
+    # No healthCheckPath on purpose: /health returns 503 until the worker
+    # heartbeats land in Redis (~30s, TTL 60s). On a free instance that sleeps
+    # after 15min, every cold start would fail the check and cause a restart
+    # loop. Render still checks the port binds. Use /health for monitoring only.
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Neon connection string. Needs ?sslmode=require appended.
+      - key: DATABASE_URL
+        sync: false
+      # Upstash TCP endpoint (rediss://). BullMQ needs blocking commands, so use
+      # the Redis protocol URL, not the REST endpoint.
+      - key: REDIS_URL
+        sync: false
+
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 1h
+
+      - key: ARBITRUM_RPC_URL
+        value: https://arb1.arbitrum.io/rpc
+      - key: ARBITRUM_SEPOLIA_RPC_URL
+        value: https://sepolia-rollup.arbitrum.io/rpc
+
+      # On-chain signing keys. Optional in the env schema — the API boots
+      # without them, but settlement/XP/tournament signing stays dead.
+      - key: SETTLER_PRIVATE_KEY
+        sync: false
+      - key: WAR_ORACLE_PRIVATE_KEY
+        sync: false
+      - key: TOURNAMENT_ORACLE_PRIVATE_KEY
+        sync: false
+      - key: XP_ORACLE_PRIVATE_KEY
+        sync: false
+
+      - key: FRONTEND_URL
+        value: https://shardveil-web-zidanemzs-projects.vercel.app
+      - key: IPFS_GATEWAY_URL
+        value: https://gateway.pinata.cloud/ipfs
+      - key: PINATA_JWT
+        sync: false
