@@ -26,6 +26,21 @@ services:
     # heartbeats land in Redis (~30s, TTL 60s). On a free instance that sleeps
     # after 15min, every cold start would fail the check and cause a restart
     # loop. Render still checks the port binds. Use /health for monitoring only.
+    #
+    # Monorepo: without this, every push touching apps/web rebuilds the API and
+    # burns the 500 free build minutes. Globs are relative to the repo root, and
+    # ignoredPaths wins when a file matches both.
+    buildFilter:
+      paths:
+        - apps/api/**
+        - packages/** # shared + contracts are compiled into the API
+        - pnpm-lock.yaml
+        - pnpm-workspace.yaml
+        - turbo.json
+        - render.yaml
+      ignoredPaths:
+        - apps/api/test/** # tests never reach the runtime bundle
+        - "**/*.md"
     envVars:
       - key: NODE_ENV
         value: production
