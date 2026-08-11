@@ -12,6 +12,9 @@ export default defineConfig({
     setupFiles: ["./test/helpers/setup.ts"],
     globals: true,
     include: ["test/**/*.test.ts"],
+    // Suites share one Postgres/Redis, and setup.ts TRUNCATEs Player + flushes
+    // Redis per test — parallel files delete each other's rows mid-run.
+    fileParallelism: false,
     coverage: {
       provider: "v8",
       include: ["src/**/*.ts"],

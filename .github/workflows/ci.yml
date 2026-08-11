@@ -13,22 +13,50 @@ env:
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
 jobs:
-  typecheck:
-    name: Typecheck
+  verify:
+    name: Verify
     runs-on: ubuntu-latest
+
+    # apps/api auth/profile suites are real integration tests — they hit
+    # Postgres and Redis. Ports/credentials mirror docker-compose.yml and
+    # apps/api/.env.test.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: shardveil
+          POSTGRES_PASSWORD: shardveil
+          POSTGRES_DB: shardveil_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # No `version:` input — pnpm is pinned by `packageManager` in package.json.
+      # Setting both fails the run when they disagree.
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
+        uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'pnpm'
 
       - name: Cache Turborepo
@@ -42,69 +70,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run typecheck
-        run: pnpm typecheck
+      - name: Apply database schema
+        run: pnpm --filter @shardveil/api exec prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://shardveil:shardveil@localhost:5433/shardveil_test
 
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-
-      - name: Cache Turborepo
-        uses: actions/cache@v4
-        with:
-          path: .turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run lint
-        run: pnpm lint
-
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-
-      - name: Cache Turborepo
-        uses: actions/cache@v4
-        with:
-          path: .turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run tests
-        run: pnpm test
+      # One turbo invocation: builds workspace deps once, fans the rest out in
+      # parallel. The old 3-job split re-installed and rebuilt everything 3x,
+      # and never ran `build` at all — so broken builds reached Vercel green.
+      - name: Build, typecheck, lint and test
+        run: pnpm turbo build typecheck lint test

@@ -43,3 +43,5 @@ next-env.d.ts
 .idea/
 *.swp
 *.swo
+# Vercel CLI link + OIDC token (.env.local covered by .env*.local above)
+.vercel
