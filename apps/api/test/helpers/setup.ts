@@ -27,6 +27,8 @@ vi.mock("../../src/config/viem", () => ({
   publicClient: {
     getBlockNumber: vi.fn().mockResolvedValue(BigInt(1)),
     readContract: vi.fn().mockResolvedValue(null),
+    // eventIndexer subscribes at import time; returns the `unwatch` callback
+    watchContractEvent: vi.fn(() => vi.fn()),
   },
   settlerWallet: vi.fn(),
   warOracleWallet: vi.fn(),
@@ -60,10 +62,12 @@ beforeEach(async () => {
 });
 
 afterAll(async () => {
-  if (prismaClient) {
-    await prismaClient.$disconnect();
+  // Suites that vi.mock these modules supply partial clients, so probe for the
+  // teardown method the same way beforeEach does rather than assuming it exists.
+  if (typeof (prismaClient as any)?.$disconnect === "function") {
+    await prismaClient!.$disconnect();
   }
-  if (redisClient) {
-    await redisClient.quit();
+  if (typeof (redisClient as any)?.quit === "function") {
+    await redisClient!.quit();
   }
 });

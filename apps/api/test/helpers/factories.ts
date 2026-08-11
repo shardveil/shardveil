@@ -36,7 +36,7 @@ export async function createPlayer(
       address: overrides.address ?? randomAddress(),
       username: overrides.username ?? null,
       bio: overrides.bio ?? null,
-      avatarCid: overrides.avatarCid ?? null,
+      avatarUrl: overrides.avatarUrl ?? null,
       twitterHandle: overrides.twitterHandle ?? null,
       discordHandle: overrides.discordHandle ?? null,
       isPrivate: overrides.isPrivate ?? false,
