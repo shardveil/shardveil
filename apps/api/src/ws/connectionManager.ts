@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import type { WSContext } from "hono/ws";
 import type { WebSocket } from "ws";
 
@@ -11,6 +13,9 @@ const PRESENCE_TTL_SECONDS = 300; // 5 minutes
 /** WebSocket readyState value for an open connection. */
 const WS_OPEN = 1;
 
+/** Pub/sub channel every API instance publishes outbound WS messages to. */
+const FANOUT_CHANNEL = "ws:fanout";
+
 /** Opaque type alias so callers can't confuse raw WebSocket with WSContext. */
 type Socket = WSContext<WebSocket>;
 
@@ -21,6 +26,18 @@ interface SocketMeta {
 }
 
 /**
+ * One outbound WS message, relayed to the instances that hold the sockets.
+ * `payload` is already-serialized — fanout never re-encodes it.
+ */
+interface FanoutMessage {
+  /** Publishing instance, so it can skip its own echo. */
+  from: string;
+  kind: "address" | "room";
+  target: string;
+  payload: string;
+}
+
+/**
  * Central registry of all live WebSocket connections.
  *
  * Design decisions:
@@ -28,8 +45,15 @@ interface SocketMeta {
  * - Room membership tracked per-socket so unregister is O(rooms) not O(all-sockets).
  * - All Redis presence operations are fire-and-forget; a Redis blip must not
  *   crash or stall the WebSocket event loop.
+ * - Sockets live in this process, so sends are delivered locally first and
+ *   then published for the other instances (see `_publish`). Presence is
+ *   shared through Redis, so without that relay a second instance would show
+ *   a player online and silently drop every message aimed at them.
  */
 class ConnectionManager {
+  /** Identifies this process on the fanout channel. */
+  private readonly instanceId = randomUUID();
+
   /** socket → metadata */
   private readonly sockets = new Map<Socket, SocketMeta>();
 
@@ -142,10 +166,78 @@ class ConnectionManager {
   // ---------------------------------------------------------------------------
 
   /**
-   * Broadcast a message to all sockets belonging to `address`.
-   * Silently skips sockets that are no longer open.
+   * Broadcast a message to all sockets belonging to `address`, on this
+   * instance and every other one.
    */
   sendToAddress(address: Address, message: string): void {
+    this._deliverToAddress(address, message);
+    this._publish("address", address, message);
+  }
+
+  /**
+   * Broadcast a message to all sockets subscribed to `roomId`, on this
+   * instance and every other one.
+   */
+  sendToRoom(roomId: string, message: string): void {
+    this._deliverToRoom(roomId, message);
+    this._publish("room", roomId, message);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Cross-instance fanout
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Deliver a message that arrived on the fanout channel. Published by
+   * another instance — our own echo is dropped here.
+   */
+  receiveFanout(raw: string): void {
+    let msg: FanoutMessage;
+    try {
+      msg = JSON.parse(raw) as FanoutMessage;
+    } catch {
+      logger.warn("WS: dropped malformed fanout message");
+      return;
+    }
+
+    if (msg.from === this.instanceId) {
+      return;
+    }
+
+    if (msg.kind === "address") {
+      this._deliverToAddress(msg.target as Address, msg.payload);
+    } else {
+      this._deliverToRoom(msg.target, msg.payload);
+    }
+  }
+
+  /**
+   * Relay a message to the other instances. Fire-and-forget for the same
+   * reason presence is: a Redis blip must not stall the WS event loop. The
+   * local delivery has already happened by the time this runs.
+   */
+  private _publish(
+    kind: FanoutMessage["kind"],
+    target: string,
+    payload: string,
+  ): void {
+    const msg: FanoutMessage = {
+      from: this.instanceId,
+      kind,
+      target,
+      payload,
+    };
+
+    redis.publish(FANOUT_CHANNEL, JSON.stringify(msg)).catch((err) => {
+      logger.warn(
+        { error: err instanceof Error ? err.message : String(err) },
+        "WS: fanout publish failed — message delivered locally only",
+      );
+    });
+  }
+
+  /** Send to this instance's sockets for `address`. Skips closed sockets. */
+  private _deliverToAddress(address: Address, message: string): void {
     const addrSockets = this.byAddress.get(address);
     if (!addrSockets || addrSockets.size === 0) {
       return;
@@ -156,11 +248,8 @@ class ConnectionManager {
     }
   }
 
-  /**
-   * Broadcast a message to all sockets subscribed to `roomId`.
-   * Silently skips sockets that are no longer open.
-   */
-  sendToRoom(roomId: string, message: string): void {
+  /** Send to this instance's sockets in `roomId`. Skips closed sockets. */
+  private _deliverToRoom(roomId: string, message: string): void {
     const roomSockets = this.byRoom.get(roomId);
     if (!roomSockets || roomSockets.size === 0) {
       return;
@@ -230,3 +319,36 @@ class ConnectionManager {
  * Import this in wsServer.ts and any channel that needs to push messages.
  */
 export const connectionManager = new ConnectionManager();
+
+/**
+ * Subscribe this instance to the fanout channel.
+ *
+ * A subscribed ioredis connection cannot run other commands, so this needs a
+ * connection of its own — `duplicate()` reuses the singleton's config.
+ * Started on import: an instance must be listening before its first socket
+ * connects, not after its first send.
+ */
+function startFanoutSubscriber(): void {
+  const subscriber = redis.duplicate();
+
+  subscriber.on("error", (error) => {
+    logger.error({ error }, "WS: fanout subscriber error");
+  });
+
+  subscriber.on("message", (channel, raw) => {
+    if (channel === FANOUT_CHANNEL) {
+      connectionManager.receiveFanout(raw);
+    }
+  });
+
+  subscriber.subscribe(FANOUT_CHANNEL).then(
+    () => logger.info("WS: fanout subscriber ready"),
+    (error: unknown) =>
+      logger.error(
+        { error },
+        "WS: fanout subscribe failed — single-instance delivery only",
+      ),
+  );
+}
+
+startFanoutSubscriber();
