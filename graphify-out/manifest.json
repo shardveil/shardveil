@@ -105,14 +105,14 @@
     "semantic_hash": "61495972939a44b057f159ef62839dca"
   },
   "apps/api/scripts/indexer-backfill.ts": {
-    "mtime": 1780777977.8211002,
-    "ast_hash": "4e2ee80827a1ed065acb3672d9801c65",
-    "semantic_hash": "4e2ee80827a1ed065acb3672d9801c65"
+    "mtime": 1786552075.456098,
+    "ast_hash": "ab9ac50805f6987ceac369d0aa065517",
+    "semantic_hash": ""
   },
   "apps/api/scripts/indexer-replay.ts": {
-    "mtime": 1780777977.8211002,
-    "ast_hash": "bce0064a56efc8a5ab5c606ef351b458",
-    "semantic_hash": "bce0064a56efc8a5ab5c606ef351b458"
+    "mtime": 1786552075.456098,
+    "ast_hash": "079f7457343e38efc2d3ef71f6d22627",
+    "semantic_hash": ""
   },
   "apps/api/scripts/indexer-status.ts": {
     "mtime": 1780777977.8247669,
@@ -150,14 +150,14 @@
     "semantic_hash": "a448d67d4a440f6b5b6a3e0512f4cb02"
   },
   "apps/api/src/config/viem.ts": {
-    "mtime": 1786548747.8132045,
-    "ast_hash": "763113b0f3c4cc496456c53483392858",
-    "semantic_hash": "763113b0f3c4cc496456c53483392858"
+    "mtime": 1786552424.4325993,
+    "ast_hash": "c3f949e53363dbaa0363132b9c6a2f19",
+    "semantic_hash": ""
   },
   "apps/api/src/index.ts": {
-    "mtime": 1780777977.8247669,
-    "ast_hash": "4a1b92d5f64455c26ee16aaf4c34752f",
-    "semantic_hash": "4a1b92d5f64455c26ee16aaf4c34752f"
+    "mtime": 1786552110.4556696,
+    "ast_hash": "755d2be3cf9fba11f983d9ce5cb886a4",
+    "semantic_hash": ""
   },
   "apps/api/src/lib/errors.ts": {
     "mtime": 1780777977.8247669,
@@ -180,9 +180,9 @@
     "semantic_hash": "366eb456fb9743bd1f8c15885b0123b2"
   },
   "apps/api/src/middleware/adminGuard.ts": {
-    "mtime": 1780777977.8247669,
-    "ast_hash": "c8c963d6623481db3ec52ce425703bb8",
-    "semantic_hash": "c8c963d6623481db3ec52ce425703bb8"
+    "mtime": 1786552075.4600914,
+    "ast_hash": "0fdde4f51a401fa65231dfecf810a0c3",
+    "semantic_hash": ""
   },
   "apps/api/src/middleware/auth.ts": {
     "mtime": 1780777977.8247669,
@@ -250,9 +250,9 @@
     "semantic_hash": "e44da9c076717d9cfde220e51ff16eb5"
   },
   "apps/api/src/services/battleService.ts": {
-    "mtime": 1780777977.8284335,
-    "ast_hash": "0154fe0456b58b6a313b46decfe16f9f",
-    "semantic_hash": "0154fe0456b58b6a313b46decfe16f9f"
+    "mtime": 1786551847.5179808,
+    "ast_hash": "1b8509752f2ce364efbcfe32c7e23020",
+    "semantic_hash": ""
   },
   "apps/api/src/services/cacheService.ts": {
     "mtime": 1780777977.8284335,
@@ -260,9 +260,9 @@
     "semantic_hash": "b571c9c15327b0caf0699052447f1ba5"
   },
   "apps/api/src/services/cardService.ts": {
-    "mtime": 1786544904.846473,
-    "ast_hash": "99ecc5f4f66e1b3dba94d9e87689869e",
-    "semantic_hash": "99ecc5f4f66e1b3dba94d9e87689869e"
+    "mtime": 1786552075.456098,
+    "ast_hash": "580860126a956ee8ffd07f3e68147312",
+    "semantic_hash": ""
   },
   "apps/api/src/services/indexerService.ts": {
     "mtime": 1780777977.8284335,
@@ -290,9 +290,9 @@
     "semantic_hash": "12019252306d90de8117d3b47bb778d2"
   },
   "apps/api/src/services/tournamentService.ts": {
-    "mtime": 1780777977.8284335,
-    "ast_hash": "7efdfd99cd82b98f1a022ea9cf9c854b",
-    "semantic_hash": "7efdfd99cd82b98f1a022ea9cf9c854b"
+    "mtime": 1786552424.6156895,
+    "ast_hash": "06528cce5c79db9858977a1d16a0f534",
+    "semantic_hash": ""
   },
   "apps/api/src/workers/activityGenerator.ts": {
     "mtime": 1780777977.8284335,
@@ -305,14 +305,14 @@
     "semantic_hash": "69c343ddbfa38eca845b07469a3368e6"
   },
   "apps/api/src/workers/eventIndexer.ts": {
-    "mtime": 1780777977.8284335,
-    "ast_hash": "b5f8975716fe0a43a54cfb6a75eedfa2",
-    "semantic_hash": "b5f8975716fe0a43a54cfb6a75eedfa2"
+    "mtime": 1786552075.4600914,
+    "ast_hash": "8d95c063dc890a2e45cf2a7001f59f04",
+    "semantic_hash": ""
   },
   "apps/api/src/workers/settlementSigner.ts": {
-    "mtime": 1780777977.8284335,
-    "ast_hash": "96f303ba69e43c028739c15ba9ff6b6e",
-    "semantic_hash": "96f303ba69e43c028739c15ba9ff6b6e"
+    "mtime": 1786552424.684857,
+    "ast_hash": "b8db9a38a1c7122b31f2517c9b0c7131",
+    "semantic_hash": ""
   },
   "apps/api/src/workers/tournamentWorker.ts": {
     "mtime": 1780777977.8284335,
@@ -320,19 +320,19 @@
     "semantic_hash": "25eadc09ead94053b71ba0446e10d549"
   },
   "apps/api/src/workers/vrfWatcher.ts": {
-    "mtime": 1780777977.8284335,
-    "ast_hash": "8d07f7692b37ac7d0194afa8f40dcf8d",
-    "semantic_hash": "8d07f7692b37ac7d0194afa8f40dcf8d"
+    "mtime": 1786552424.7011316,
+    "ast_hash": "94b71e03609af4366fcf683683e25d98",
+    "semantic_hash": ""
   },
   "apps/api/src/workers/xpSigner.ts": {
-    "mtime": 1780777977.8284335,
-    "ast_hash": "9de69cd222267d0222c00800d01e99a0",
-    "semantic_hash": "9de69cd222267d0222c00800d01e99a0"
+    "mtime": 1786552075.4600914,
+    "ast_hash": "89bc40315be225828c2fcef083b2ed7c",
+    "semantic_hash": ""
   },
   "apps/api/src/ws/channels/battleChannel.ts": {
-    "mtime": 1780777977.8284335,
-    "ast_hash": "32df926ed2a41df603a5e01dbbf25703",
-    "semantic_hash": "32df926ed2a41df603a5e01dbbf25703"
+    "mtime": 1786551861.417789,
+    "ast_hash": "7da168a17d7c08827895396fafb59d27",
+    "semantic_hash": ""
   },
   "apps/api/src/ws/channels/chatChannel.ts": {
     "mtime": 1780777977.8284335,
@@ -350,9 +350,9 @@
     "semantic_hash": "ffc0ca4c512894710f98ef389c694d89"
   },
   "apps/api/src/ws/connectionManager.ts": {
-    "mtime": 1780777977.8284335,
-    "ast_hash": "a3423df804d3a7783199ff277ae26b1e",
-    "semantic_hash": "a3423df804d3a7783199ff277ae26b1e"
+    "mtime": 1786551562.9799087,
+    "ast_hash": "b5af06447132a6ae5a97291b2bb42dac",
+    "semantic_hash": ""
   },
   "apps/api/src/ws/messageRouter.ts": {
     "mtime": 1780777977.8284335,
@@ -385,9 +385,9 @@
     "semantic_hash": "497ee5c9c072742084fb5b242759d614"
   },
   "apps/api/test/helpers/setup.ts": {
-    "mtime": 1786460199.0143292,
-    "ast_hash": "b007322cfc2ff448aecded79d81af8d1",
-    "semantic_hash": "b007322cfc2ff448aecded79d81af8d1"
+    "mtime": 1786552162.03554,
+    "ast_hash": "9d06f92615c7e604e00371f8a13e173a",
+    "semantic_hash": ""
   },
   "apps/api/test/integration/indexer.test.ts": {
     "mtime": 1780777977.8321002,
@@ -395,9 +395,9 @@
     "semantic_hash": "246b9a7b1f3b4daac049aac9c7995302"
   },
   "apps/api/test/integration/ws.test.ts": {
-    "mtime": 1780777977.8321002,
-    "ast_hash": "93ada4c095d525729ef4c66e82fac2e4",
-    "semantic_hash": "93ada4c095d525729ef4c66e82fac2e4"
+    "mtime": 1786550792.147721,
+    "ast_hash": "1277cfd217a49508b21532b0d5377f08",
+    "semantic_hash": ""
   },
   "apps/api/test/profile.test.ts": {
     "mtime": 1780777977.8321002,
@@ -1230,8 +1230,8 @@
     "semantic_hash": ""
   },
   "apps/api/test/cardDetailNotFound.test.ts": {
-    "mtime": 1786545082.2544131,
-    "ast_hash": "a12b8c12e97d572503ca0fe849ab559a",
+    "mtime": 1786552424.7377496,
+    "ast_hash": "1b0a74a445ed6c900c1c88a927b43ce8",
     "semantic_hash": ""
   },
   "apps/api/test/cardMetadata.test.ts": {
@@ -1240,8 +1240,8 @@
     "semantic_hash": ""
   },
   "apps/api/test/cardPricingDegrade.test.ts": {
-    "mtime": 1786541753.8314755,
-    "ast_hash": "8168578b224ba404c9c12998b624f3ed",
+    "mtime": 1786552260.9355247,
+    "ast_hash": "1ffd8375e2b43089ac1f7503a63f2aa0",
     "semantic_hash": ""
   },
   "apps/api/test/healthLag.test.ts": {
@@ -1330,33 +1330,38 @@
     "semantic_hash": ""
   },
   "graphify-out/memory/query_20260812_154835_why_does_redis_connect_battles__auth__chat__indexe.md": {
-    "mtime": 1786549715.0014303,
-    "ast_hash": "0e520e059ac989e1d1dfb57eba0435c0",
+    "mtime": 1786550587.8318985,
+    "ast_hash": "2b863affa56c1fe14a5e97899c09d021",
     "semantic_hash": ""
   },
   "graphify-out/memory/query_20260812_155104_what_connects_the_579_weakly_connected_nodes_to_th.md": {
-    "mtime": 1786549864.0172782,
-    "ast_hash": "216e4ec2df6c362e609cfe4025939447",
+    "mtime": 1786550587.8438337,
+    "ast_hash": "447b934c106b94c8a29bd50aaa49eb5a",
     "semantic_hash": ""
   },
   "graphify-out/memory/query_20260812_155422_why_does_getaddresses___connect_contract_abis_and.md": {
-    "mtime": 1786550062.6336315,
-    "ast_hash": "7b45f6879e4a01e337ee134afaa5ec98",
+    "mtime": 1786550587.8597476,
+    "ast_hash": "8c7342e85869cc7a7e38fac84e644bcc",
     "semantic_hash": ""
   },
   "graphify-out/memory/query_20260812_155515_why_does_connectionmanager_connect_ws_connection_m.md": {
-    "mtime": 1786550115.677283,
-    "ast_hash": "a3d58d9d2dd5b4d7640ee087d3343ba3",
+    "mtime": 1786550587.8756614,
+    "ast_hash": "a168b2b7fa537925437f511453e45aaa",
     "semantic_hash": ""
   },
   "graphify-out/memory/query_20260812_155602_should_battle_engine_and_timers__websocket_server.md": {
-    "mtime": 1786550162.0753622,
-    "ast_hash": "66f2046d87d4e8c45c7793e33eb2d0d7",
+    "mtime": 1786550587.8875966,
+    "ast_hash": "2a2f2cbc47a0163698c1955af056a2c7",
     "semantic_hash": ""
   },
   "apps/web/public/card-placeholder.svg": {
     "mtime": 1786539999.8472493,
     "ast_hash": "17bdf17d3bd47a8e9c3b26beaa44e96d",
+    "semantic_hash": ""
+  },
+  "apps/api/test/connectionManager.test.ts": {
+    "mtime": 1786551793.534735,
+    "ast_hash": "da0290f1f249b0745948ca13b958fd36",
     "semantic_hash": ""
   }
 }

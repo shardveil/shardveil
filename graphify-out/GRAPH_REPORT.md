@@ -1,19 +1,19 @@
-# Graph Report - app (2026-08-12)
+# Graph Report - app (2026-08-13)
 
 ## Corpus Check
 
-- 267 files · ~108,845 words
+- 268 files · ~110,210 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
 
-- 1557 nodes · 2415 edges · 127 communities (112 shown, 15 thin omitted)
+- 1568 nodes · 2449 edges · 129 communities (115 shown, 14 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 16 edges (avg confidence: 0.83)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
 
-- Built from commit: `491309b4`
+- Built from commit: `37f13bde`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -132,11 +132,13 @@
 - [[_COMMUNITY_Community 122|Community 122]]
 - [[_COMMUNITY_Community 123|Community 123]]
 - [[_COMMUNITY_Community 124|Community 124]]
+- [[_COMMUNITY_Community 127|Community 127]]
+- [[_COMMUNITY_Community 128|Community 128]]
 
 ## God Nodes (most connected - your core abstractions)
 
-1. `redis` - 28 edges
-2. `ConnectionManager` - 22 edges
+1. `redis` - 29 edges
+2. `ConnectionManager` - 27 edges
 3. `compilerOptions` - 18 edges
 4. `scripts` - 15 edges
 5. `Env` - 15 edges
@@ -148,6 +150,8 @@
 
 ## Surprising Connections (you probably didn't know these)
 
+- `getContract()` --calls--> `getAddresses()` [INFERRED]
+  apps/api/src/config/viem.ts → packages/contracts/src/addresses.ts
 - `External Neon and Upstash Datastores` --semantically_similar_to--> `Postgres 16 Dev Service` [INFERRED] [semantically similar]
   render.yaml → docker-compose.yml
 - `External Neon and Upstash Datastores` --semantically_similar_to--> `Redis 7 Dev Service` [INFERRED] [semantically similar]
@@ -156,8 +160,6 @@
   .github/workflows/ci.yml → docker-compose.yml
 - `Root-Level Build Command` --semantically_similar_to--> `CI Prisma Migrate Deploy` [INFERRED] [semantically similar]
   render.yaml → .github/workflows/ci.yml
-- `main()` --calls--> `getAddresses()` [INFERRED]
-  apps/api/scripts/indexer-backfill.ts → packages/contracts/src/addresses.ts
 
 ## Import Cycles
 
@@ -169,12 +171,12 @@
 - **Postgres/Redis Parity Across Environments** — docker_compose_postgres_test, docker_compose_redis, workflows_ci_service_containers, render_external_datastores [INFERRED 0.85]
 - **Free-Tier Deployment Constraints** — render_no_healthcheck_path, render_external_datastores, render_build_filter, render_api_service [EXTRACTED 1.00]
 
-## Communities (127 total, 15 thin omitted)
+## Communities (129 total, 14 thin omitted)
 
 ### Community 0 - "Battle Engine and Timers"
 
 Cohesion: 0.08
-Nodes (55): battleChannelHandler(), buildBothRevealedMsg(), buildErrorMsg(), buildMatchSettledMsg(), buildOpponentDisconnectedMsg(), buildOpponentJoinedMsg(), buildReconnectDeadlineMsg(), buildTurnUpdateMsg() (+47 more)
+Nodes (54): battleChannelHandler(), buildBothRevealedMsg(), buildErrorMsg(), buildMatchSettledMsg(), buildOpponentDisconnectedMsg(), buildOpponentJoinedMsg(), buildReconnectDeadlineMsg(), buildTurnUpdateMsg() (+46 more)
 
 ### Community 1 - "WebSocket Server and Routing"
 
@@ -213,8 +215,8 @@ Nodes (18): ContractAbi, useContractAddress(), usePackContractEvents(), usePackC
 
 ### Community 8 - "SIWE Authentication"
 
-Cohesion: 0.22
-Nodes (14): buildMessage(), consumeNonce(), generateNonce(), getDomain(), runTests(), testAccount, verifySignature(), clearPresence() (+6 more)
+Cohesion: 0.26
+Nodes (12): buildMessage(), consumeNonce(), generateNonce(), getDomain(), runTests(), testAccount, verifySignature(), computeExpiresAt() (+4 more)
 
 ### Community 9 - "Marketing Landing Sections"
 
@@ -228,8 +230,8 @@ Nodes (49): Postgres 16 Dev Service, Postgres Test Instance, Redis 7 Dev Service
 
 ### Community 11 - "Contract ABIs and Addresses"
 
-Cohesion: 0.06
-Nodes (36): ammMarketplaceAbi, battleEngineAbi, cardNftAbi, cardRegistryAbi, craftingEngineAbi, guildSystemAbi, packContractAbi, shardTokenAbi (+28 more)
+Cohesion: 0.12
+Nodes (13): ammMarketplaceAbi, battleEngineAbi, cardNftAbi, cardRegistryAbi, craftingEngineAbi, guildSystemAbi, packContractAbi, shardTokenAbi (+5 more)
 
 ### Community 12 - "Chain Indexer and Backfill"
 
@@ -253,8 +255,8 @@ Nodes (11): AuthGate(), AuthGateProps, SessionResponse, api(), ApiError, ErrorBo
 
 ### Community 16 - "API Runtime Config"
 
-Cohesion: 0.13
-Nodes (14): registerBattleChannel(), registerChatChannel(), Env, envSchema, pinoConfig, verifyWsToken(), cleanupRateLimit(), Socket (+6 more)
+Cohesion: 0.17
+Nodes (12): registerBattleChannel(), registerChatChannel(), Env, envSchema, pinoConfig, redis, verifyWsToken(), cleanupRateLimit() (+4 more)
 
 ### Community 17 - "Card Catalog Service"
 
@@ -293,8 +295,8 @@ Nodes (11): fetchHallOfFame(), HallOfFameData, HallOfFamePage(), metadata, struc
 
 ### Community 24 - "API Error Classes"
 
-Cohesion: 0.19
-Nodes (7): ApiError, ConflictError, ForbiddenError, NotFoundError, RateLimitError, UnauthorizedError, errorHandler()
+Cohesion: 0.16
+Nodes (9): ApiError, ConflictError, ForbiddenError, NotFoundError, RateLimitError, UnauthorizedError, ValidationError, ALLOWED_GLOBAL_ROOMS (+1 more)
 
 ### Community 25 - "Core UI Primitives"
 
@@ -308,8 +310,8 @@ Nodes (11): metadata, structuredData, PhaseCard(), PhaseCardProps, PhaseStatus, 
 
 ### Community 27 - "Notification Service"
 
-Cohesion: 0.22
-Nodes (14): listQuerySchema, markReadBodySchema, notificationRouter, buildPushEnvelope(), create(), decrementUnreadCache(), getUnreadCount(), invalidateUnreadCache() (+6 more)
+Cohesion: 0.31
+Nodes (10): buildPushEnvelope(), create(), decrementUnreadCache(), getUnreadCount(), invalidateUnreadCache(), markAllRead(), markRead(), NotificationListOptions (+2 more)
 
 ### Community 28 - "Shared Package Manifest"
 
@@ -328,8 +330,8 @@ Nodes (15): scripts, build, clean, db:migrate, db:reset, db:seed, db:studio, dev
 
 ### Community 31 - "XP and Activity Workers"
 
-Cohesion: 0.21
-Nodes (8): CONTRACT_ABIS, ContractName, xpOracleWallet(), markProcessed(), processXpGrantJob(), worker, XP_AMOUNTS, XpGrantJob
+Cohesion: 0.15
+Nodes (10): bullConnection, xpOracleWallet(), ActivityEventJob, EVENT_MAP, worker, markProcessed(), processXpGrantJob(), worker (+2 more)
 
 ### Community 32 - "Admin Guard and Cache"
 
@@ -378,13 +380,18 @@ Nodes (13): compilerOptions, baseUrl, composite, incremental, jsx, lib, noEmit, 
 
 ### Community 41 - "Server Entry and VRF Watcher"
 
-Cohesion: 0.13
-Nodes (15): bullConnection, server, shutdown(), { wsApp, injectWebSocket }, ActivityEventJob, EVENT_MAP, shutdown(), worker (+7 more)
+Cohesion: 0.23
+Nodes (11): ACTIVE_CHAIN_ID, server, shutdown(), { wsApp, injectWebSocket }, shutdown(), shutdown(), shutdown(), shutdown() (+3 more)
 
 ### Community 42 - "Chat Store and WS Provider"
 
 Cohesion: 0.14
 Nodes (14): useWs(), DEFAULT_SUBSCRIBE_CHANNELS, useWsContext(), WsChannel, WsContext, WsContextType, WsEnvelope, WsMessageHandler (+6 more)
+
+### Community 43 - "WS Connection Manager"
+
+Cohesion: 0.14
+Nodes (5): ALICE, connectAlice(), makeSocket(), { subscriberHandlers }, ConnectionManager
 
 ### Community 44 - "Wallet Connect Page"
 
@@ -394,7 +401,7 @@ Nodes (5): CONNECTOR_LABELS, ConnectWalletButton(), SiweFlow(), ConnectPageConte
 ### Community 45 - "Event Indexer Watcher"
 
 Cohesion: 0.16
-Nodes (12): redis, publicClient, extractAddresses(), loggerMiddleware(), ContractName, app, INDEXER_LAG_TOLERANCE_BLOCKS, addresses (+4 more)
+Nodes (11): CONTRACT_ABIS, ContractName, getContract(), publicClient, extractAddresses(), ContractName, addresses, heartbeatInterval (+3 more)
 
 ### Community 46 - "Root Workspace Scripts"
 
@@ -403,8 +410,8 @@ Nodes (12): scripts, build, clean, dev, format, lint, prepare, services:down (+4
 
 ### Community 47 - "Leaderboard Service"
 
-Cohesion: 0.18
-Nodes (5): CacheService, CrafterEntry, GuildEntry, LeaderboardEntry, LeaderboardResponse
+Cohesion: 0.09
+Nodes (26): CacheService, cardNameEntrySchema, cardNamesSchema, getCardNames(), buildPoolByCardId(), CardCatalogItem, CardDetail, CardListResult (+18 more)
 
 ### Community 48 - "Turbo Task Pipeline"
 
@@ -423,8 +430,8 @@ Nodes (10): compilerOptions, composite, lib, module, moduleResolution, noEmit, n
 
 ### Community 51 - "WebSocket Integration Tests"
 
-Cohesion: 0.20
-Nodes (7): FRIEND, RECEIVER, SENDER, Socket, SUBSCRIBER, Socket, SocketMeta
+Cohesion: 0.17
+Nodes (8): FRIEND, RECEIVER, SENDER, Socket, SUBSCRIBER, FanoutMessage, Socket, SocketMeta
 
 ### Community 52 - "Contracts TypeScript Config"
 
@@ -453,8 +460,8 @@ Nodes (9): husky.sh script, devDependencies, @commitlint/cli, @commitlint/config
 
 ### Community 57 - "API Rate Limiting"
 
-Cohesion: 0.12
-Nodes (9): authNonceLimit, authVerifyLimit, heavyReadLimit, RateLimitOptions, standardLimit, auth, verifyBodySchema, leaderboardRouter (+1 more)
+Cohesion: 0.18
+Nodes (8): authNonceLimit, authVerifyLimit, RateLimitOptions, standardLimit, auth, verifyBodySchema, clearPresence(), issueNonce()
 
 ### Community 58 - "Shared TypeScript Config"
 
@@ -503,8 +510,8 @@ Nodes (8): Announcement, AnnouncementBanner(), AnnouncementType, typeStyles, Foo
 
 ### Community 67 - "Auth Middleware"
 
-Cohesion: 0.22
-Nodes (9): ValidationError, ContextVariableMap, isTokenRevoked(), optionalAuth(), requireAuth(), verifyAndDecodeToken(), messagesRouter, ALLOWED_GLOBAL_ROOMS (+1 more)
+Cohesion: 0.23
+Nodes (10): ContextVariableMap, isTokenRevoked(), optionalAuth(), requireAuth(), verifyAndDecodeToken(), messagesRouter, listQuerySchema, markReadBodySchema (+2 more)
 
 ### Community 68 - "AMM Marketplace Hooks"
 
@@ -661,26 +668,36 @@ Nodes (3): name, private, version
 Cohesion: 0.67
 Nodes (3): dependsOn, outputs, lint
 
+### Community 127 - "Community 127"
+
+Cohesion: 0.18
+Nodes (5): errorHandler(), loggerMiddleware(), cardsRouter, app, INDEXER_LAG_TOLERANCE_BLOCKS
+
+### Community 128 - "Community 128"
+
+Cohesion: 0.17
+Nodes (7): heavyReadLimit, leaderboardRouter, CrafterEntry, GuildEntry, LeaderboardEntry, LeaderboardResponse, LeaderboardService
+
 ## Knowledge Gaps
 
-- **629 isolated node(s):** `husky.sh script`, `name`, `version`, `private`, `type` (+624 more)
+- **632 isolated node(s):** `husky.sh script`, `name`, `version`, `private`, `type` (+627 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **15 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **14 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `ConnectionManager` connect `WS Connection Manager` to `Battle Engine and Timers`, `Chat and Moderation`, `Battle Settlement Signer`, `Server Entry and VRF Watcher`, `Chain Indexer and Backfill`, `API Runtime Config`, `WebSocket Integration Tests`, `Notification Service`?**
-  _High betweenness centrality (0.015) - this node is a cross-community bridge._
-- **Why does `getAddresses()` connect `Contract ABIs and Addresses` to `Chain Indexer and Backfill`, `Tournament Engine`, `XP and Activity Workers`?**
+  _High betweenness centrality (0.016) - this node is a cross-community bridge._
+- **Why does `getAddresses()` connect `Contract ABIs and Addresses` to `Chain Indexer and Backfill`, `Event Indexer Watcher`, `Leaderboard Service`, `Tournament Engine`, `XP and Activity Workers`?**
   _High betweenness centrality (0.011) - this node is a cross-community bridge._
-- **Why does `redis` connect `Event Indexer Watcher` to `Battle Engine and Timers`, `WebSocket Server and Routing`, `Auth Middleware`, `Chat and Moderation`, `SIWE Authentication`, `Server Entry and VRF Watcher`, `Battle Settlement Signer`, `Chain Indexer and Backfill`, `API Runtime Config`, `WebSocket Integration Tests`, `Tournament Engine`, `API Rate Limiting`, `Notification Service`, `XP and Activity Workers`?**
+- **Why does `redis` connect `API Runtime Config` to `Battle Engine and Timers`, `WebSocket Server and Routing`, `Auth Middleware`, `Chat and Moderation`, `SIWE Authentication`, `Server Entry and VRF Watcher`, `Battle Settlement Signer`, `WS Connection Manager`, `Chain Indexer and Backfill`, `Event Indexer Watcher`, `WebSocket Integration Tests`, `Tournament Engine`, `API Rate Limiting`, `Notification Service`, `XP and Activity Workers`, `Community 127`?**
   _High betweenness centrality (0.009) - this node is a cross-community bridge._
 - **What connects `husky.sh script`, `name`, `version` to the rest of the system?**
-  _631 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _634 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Battle Engine and Timers` be split into smaller, more focused modules?**
-  _Cohesion score 0.07540983606557378 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08007013442431327 - nodes in this community are weakly interconnected._
 - **Should `WebSocket Server and Routing` be split into smaller, more focused modules?**
   _Cohesion score 0.09411764705882353 - nodes in this community are weakly interconnected._
 - **Should `Card Browsing Grid` be split into smaller, more focused modules?**
