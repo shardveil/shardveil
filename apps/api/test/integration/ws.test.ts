@@ -119,6 +119,30 @@ const SENDER = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" as `0x${string}`;
 const RECEIVER = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" as `0x${string}`;
 
 // ---------------------------------------------------------------------------
+// BattleChannel — active-battle tracking key
+// ---------------------------------------------------------------------------
+
+describe("BattleChannel — setActiveBattle", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("writes battle:active with a TTL so an abandoned key cannot leak forever", async () => {
+    const { setActiveBattle } =
+      await import("../../src/ws/channels/battleChannel");
+
+    await setActiveBattle(SENDER, "match-1");
+
+    expect(vi.mocked(redis.set)).toHaveBeenCalledWith(
+      `battle:active:${SENDER}`,
+      "match-1",
+      "EX",
+      expect.any(Number),
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
 // ChatChannel — handleSend for DM
 // ---------------------------------------------------------------------------
 

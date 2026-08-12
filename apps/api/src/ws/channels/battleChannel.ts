@@ -57,6 +57,12 @@ type Socket = WSContext<WebSocket>;
 
 const RECONNECT_GRACE_SECONDS = 60;
 
+/**
+ * TTL for the `battle:active:{address}` tracking key. Far longer than any real
+ * battle (turns are capped at 60s each), so it only reaps abandoned keys.
+ */
+const ACTIVE_BATTLE_TTL_SECONDS = 24 * 60 * 60;
+
 // ---------------------------------------------------------------------------
 // Zod payload schemas
 // ---------------------------------------------------------------------------
@@ -422,20 +428,24 @@ export async function handleBattleDisconnect(address: Address): Promise<void> {
 /**
  * Track which battle a player is currently in.
  * Called by JOIN_MATCH on success so disconnect logic can find the matchId.
+ *
+ * Overwritten on rejoin and expired by Redis otherwise. The only reader,
+ * `handleBattleDisconnect`, re-checks the battle is still ACTIVE, so a stale
+ * or already-expired key is harmless.
  */
 export async function setActiveBattle(
   address: Address,
   matchId: string,
 ): Promise<void> {
-  // Store with no TTL — cleared on forfeit/settlement or on rejoin
-  await redis.set(`battle:active:${address}`, matchId);
-}
-
-/**
- * Clear the active battle tracking key.
- */
-export async function clearActiveBattle(address: Address): Promise<void> {
-  await redis.del(`battle:active:${address}`);
+  // ponytail: TTL instead of an explicit clear on every terminal path
+  // (settle / forfeit / timeout / signer). A missed clear leaks the key
+  // forever; an expiry cannot be forgotten.
+  await redis.set(
+    `battle:active:${address}`,
+    matchId,
+    "EX",
+    ACTIVE_BATTLE_TTL_SECONDS,
+  );
 }
 
 // ---------------------------------------------------------------------------
