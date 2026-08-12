@@ -78,7 +78,7 @@ async function fetchFirstPage(): Promise<{
     const res = await fetch(`${API_URL}/cards?pageSize=24`, {
       next: { revalidate: 60 },
     });
-    if (!res.ok) throw new Error("unavailable");
+    if (!res.ok) throw new Error(`cards API responded ${res.status}`);
     const data = (await res.json()) as CardsApiResponse;
     return {
       cards: data.data.map((c) => ({
@@ -91,7 +91,14 @@ async function fetchFirstPage(): Promise<{
       })),
       total: data.total,
     };
-  } catch {
+  } catch (error) {
+    // Swallowing this silently made an API outage look identical to "no cards exist",
+    // which is exactly how an empty catalogue went unnoticed. Still degrade to an empty
+    // grid, but leave a trace in the server logs.
+    console.error(
+      `[cards] failed to fetch ${API_URL}/cards — rendering empty catalog`,
+      error,
+    );
     return { cards: [], total: 0 };
   }
 }

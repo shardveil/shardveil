@@ -42,15 +42,16 @@ export interface CardTemplate {
 
 export interface CardCatalogItem extends CardTemplate {
   /**
-   * AMM pool id for this card.
-   * Pricing functions use poolId, not cardId.
+   * AMM pool id for this card, or null when the card is registered but not listed
+   * on the marketplace. Pricing functions use poolId, not cardId — skip them when null.
    */
-  poolId: number;
+  poolId: number | null;
 }
 
 export interface CardDetail extends CardCatalogItem {
-  buyPrice: string;
-  sellPrice: string;
+  /** null when the card has no marketplace pool — registered but not listed. */
+  buyPrice: string | null;
+  sellPrice: string | null;
   cachedAt: string;
 }
 
@@ -90,6 +91,34 @@ const BATCH_SIZE = 20;
 
 function getCardCacheKey(cardId: number): string {
   return `cards:${cardId}`;
+}
+
+/**
+ * Highest cardId registered. CardRegistry has no enumeration and public RPCs reject wide
+ * eth_getLogs ranges, so this counter is the only way to walk the catalogue.
+ */
+async function getMaxCardId(cardRegistry: `0x${string}`): Promise<number> {
+  let raw: bigint;
+
+  try {
+    raw = await publicClient.readContract({
+      address: cardRegistry,
+      abi: cardRegistryAbi,
+      functionName: "maxCardId",
+    });
+  } catch (error) {
+    logger.error({ error }, "Failed to fetch maxCardId from CardRegistry");
+    throw new ApiError(500, "RPC_ERROR", "Failed to fetch card registry size");
+  }
+
+  const value = Number(raw);
+
+  if (!Number.isSafeInteger(value) || value < 0) {
+    logger.error({ maxCardId: raw.toString() }, "maxCardId out of range");
+    throw new ApiError(500, "INTERNAL", "Invalid maxCardId value");
+  }
+
+  return value;
 }
 
 function normalizeCardTemplate(template: any): CardTemplate {
@@ -342,11 +371,13 @@ export async function getAllTemplates(): Promise<[CardCatalogItem[], string]> {
 
     const cachedAt = new Date().toISOString();
 
-    const activePools = await getActivePools(ammMarketplace);
-    const poolByCardId = buildPoolByCardId(activePools);
-    const cardIds = Array.from(poolByCardId.keys());
+    // The catalogue is the registry, not the marketplace. Deriving it from AMM pools meant
+    // every registered card stayed invisible until someone seeded liquidity for it — and
+    // since the AMM held no roles, createPool reverted, so the catalogue was always empty
+    // despite 1000 registered cards. Pools are pricing enrichment, nothing more.
+    const maxCardId = await getMaxCardId(cardRegistry);
 
-    if (cardIds.length === 0) {
+    if (maxCardId === 0) {
       await cacheService.set(
         CARDS_ALL_CACHE_KEY,
         { templates: [], cachedAt },
@@ -356,6 +387,10 @@ export async function getAllTemplates(): Promise<[CardCatalogItem[], string]> {
       return [[], cachedAt];
     }
 
+    const activePools = await getActivePools(ammMarketplace);
+    const poolByCardId = buildPoolByCardId(activePools);
+
+    const cardIds = Array.from({ length: maxCardId }, (_, i) => i + 1);
     const activeTemplates: CardCatalogItem[] = [];
 
     for (let i = 0; i < cardIds.length; i += BATCH_SIZE) {
@@ -371,26 +406,23 @@ export async function getAllTemplates(): Promise<[CardCatalogItem[], string]> {
         }
 
         const cardId = batchCardIds[index];
-        const pool = poolByCardId.get(cardId!);
-
-        if (!pool) {
-          return;
-        }
 
         activeTemplates.push({
           ...template,
-          poolId: pool.poolId,
+          // null = not listed on the marketplace; pricing calls must be skipped.
+          poolId: poolByCardId.get(cardId!)?.poolId ?? null,
         });
       });
     }
 
     logger.info(
       {
+        maxCardId,
         poolCount: activePools.length,
-        cardIdCount: cardIds.length,
         activeTemplateCount: activeTemplates.length,
+        listedCount: activeTemplates.filter((t) => t.poolId !== null).length,
       },
-      "Fetched active card catalog",
+      "Fetched card catalog from CardRegistry",
     );
 
     await cacheService.set(
@@ -493,30 +525,31 @@ export async function getCardDetail(cardId: number): Promise<CardDetail> {
       throw new NotFoundError("Card not found");
     }
 
-    if (poolId === null) {
-      throw new NotFoundError("Active pool not found for this card");
-    }
-
-    const [buyPrice, sellPrice] = await Promise.all([
-      publicClient.readContract({
-        address: ammMarketplace,
-        abi: ammMarketplaceAbi,
-        functionName: "getBuyPrice",
-        args: [BigInt(poolId)],
-      }),
-      publicClient.readContract({
-        address: ammMarketplace,
-        abi: ammMarketplaceAbi,
-        functionName: "getSellPrice",
-        args: [BigInt(poolId)],
-      }),
-    ]);
+    // A registered card with no marketplace pool is a valid card, not a 404 — it simply
+    // has no price. Throwing here made every card detail page unreachable.
+    const prices =
+      poolId === null
+        ? null
+        : await Promise.all([
+            publicClient.readContract({
+              address: ammMarketplace,
+              abi: ammMarketplaceAbi,
+              functionName: "getBuyPrice",
+              args: [BigInt(poolId)],
+            }),
+            publicClient.readContract({
+              address: ammMarketplace,
+              abi: ammMarketplaceAbi,
+              functionName: "getSellPrice",
+              args: [BigInt(poolId)],
+            }),
+          ]);
 
     const detail: CardDetail = {
       ...normalized,
       poolId,
-      buyPrice: (buyPrice as bigint).toString(),
-      sellPrice: (sellPrice as bigint).toString(),
+      buyPrice: prices === null ? null : (prices[0] as bigint).toString(),
+      sellPrice: prices === null ? null : (prices[1] as bigint).toString(),
       cachedAt: new Date().toISOString(),
     };
 

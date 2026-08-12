@@ -1,523 +1,733 @@
 export const cardRegistryAbi = [
   {
-    "inputs": [],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
+    inputs: [],
+    stateMutability: "nonpayable",
+    type: "constructor",
   },
   {
-    "inputs": [],
-    "name": "AccessControlBadConfirmation",
-    "type": "error"
+    inputs: [],
+    name: "AccessControlBadConfirmation",
+    type: "error",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
+        internalType: "address",
+        name: "account",
+        type: "address",
       },
       {
-        "internalType": "bytes32",
-        "name": "neededRole",
-        "type": "bytes32"
-      }
+        internalType: "bytes32",
+        name: "neededRole",
+        type: "bytes32",
+      },
     ],
-    "name": "AccessControlUnauthorizedAccount",
-    "type": "error"
+    name: "AccessControlUnauthorizedAccount",
+    type: "error",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "target",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "target",
+        type: "address",
+      },
     ],
-    "name": "AddressEmptyCode",
-    "type": "error"
+    name: "AddressEmptyCode",
+    type: "error",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "cardId",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "cardId",
+        type: "uint256",
+      },
     ],
-    "name": "AlreadyRegistered",
-    "type": "error"
+    name: "AlreadyRegistered",
+    type: "error",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "cardId",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "cardId",
+        type: "uint256",
+      },
     ],
-    "name": "CardNotActive",
-    "type": "error"
+    name: "CardNotActive",
+    type: "error",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "implementation",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "implementation",
+        type: "address",
+      },
     ],
-    "name": "ERC1967InvalidImplementation",
-    "type": "error"
+    name: "ERC1967InvalidImplementation",
+    type: "error",
   },
   {
-    "inputs": [],
-    "name": "ERC1967NonPayable",
-    "type": "error"
+    inputs: [],
+    name: "ERC1967NonPayable",
+    type: "error",
   },
   {
-    "inputs": [],
-    "name": "FailedCall",
-    "type": "error"
+    inputs: [],
+    name: "FailedCall",
+    type: "error",
   },
   {
-    "inputs": [],
-    "name": "InvalidInitialization",
-    "type": "error"
+    inputs: [],
+    name: "InvalidInitialization",
+    type: "error",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint8",
-        "name": "provided",
-        "type": "uint8"
-      }
+        internalType: "uint8",
+        name: "provided",
+        type: "uint8",
+      },
     ],
-    "name": "InvalidRarity",
-    "type": "error"
+    name: "InvalidRarity",
+    type: "error",
   },
   {
-    "inputs": [],
-    "name": "NotInitializing",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "UUPSUnauthorizedCallContext",
-    "type": "error"
-  },
-  {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "bytes32",
-        "name": "slot",
-        "type": "bytes32"
-      }
-    ],
-    "name": "UUPSUnsupportedProxiableUUID",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "ZeroCardId",
-    "type": "error"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "cardId",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "current",
+        type: "uint256",
       },
       {
-        "indexed": false,
-        "internalType": "enum ICardRegistry.Rarity",
-        "name": "rarity",
-        "type": "uint8"
-      }
+        internalType: "uint256",
+        name: "provided",
+        type: "uint256",
+      },
     ],
-    "name": "CardRegistered",
-    "type": "event"
+    name: "MaxCardIdNotIncreasing",
+    type: "error",
   },
   {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint64",
-        "name": "version",
-        "type": "uint64"
-      }
-    ],
-    "name": "Initialized",
-    "type": "event"
+    inputs: [],
+    name: "NotInitializing",
+    type: "error",
   },
   {
-    "anonymous": false,
-    "inputs": [
+    inputs: [],
+    name: "UUPSUnauthorizedCallContext",
+    type: "error",
+  },
+  {
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "cardId",
-        "type": "uint256"
+        internalType: "bytes32",
+        name: "slot",
+        type: "bytes32",
+      },
+    ],
+    name: "UUPSUnsupportedProxiableUUID",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "ZeroCardId",
+    type: "error",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "cardId",
+        type: "uint256",
       },
       {
-        "indexed": false,
-        "internalType": "uint32",
-        "name": "newCount",
-        "type": "uint32"
-      }
+        indexed: false,
+        internalType: "enum ICardRegistry.Rarity",
+        name: "rarity",
+        type: "uint8",
+      },
     ],
-    "name": "MintedIncremented",
-    "type": "event"
+    name: "CardRegistered",
+    type: "event",
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
+        indexed: false,
+        internalType: "uint64",
+        name: "version",
+        type: "uint64",
+      },
+    ],
+    name: "Initialized",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "cardId",
+        type: "uint256",
       },
       {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "previousAdminRole",
-        "type": "bytes32"
+        indexed: false,
+        internalType: "uint32",
+        name: "newCount",
+        type: "uint32",
+      },
+    ],
+    name: "MintedIncremented",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32",
       },
       {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "newAdminRole",
-        "type": "bytes32"
-      }
-    ],
-    "name": "RoleAdminChanged",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
+        indexed: true,
+        internalType: "bytes32",
+        name: "previousAdminRole",
+        type: "bytes32",
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
+        indexed: true,
+        internalType: "bytes32",
+        name: "newAdminRole",
+        type: "bytes32",
+      },
+    ],
+    name: "RoleAdminChanged",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32",
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "sender",
-        "type": "address"
-      }
-    ],
-    "name": "RoleGranted",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
+        indexed: true,
+        internalType: "address",
+        name: "account",
+        type: "address",
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
+        indexed: true,
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
+    ],
+    name: "RoleGranted",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32",
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "sender",
-        "type": "address"
-      }
+        indexed: true,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
     ],
-    "name": "RoleRevoked",
-    "type": "event"
+    name: "RoleRevoked",
+    type: "event",
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "implementation",
-        "type": "address"
-      }
+        indexed: true,
+        internalType: "address",
+        name: "implementation",
+        type: "address",
+      },
     ],
-    "name": "Upgraded",
-    "type": "event"
+    name: "Upgraded",
+    type: "event",
   },
   {
-    "inputs": [],
-    "name": "DEFAULT_ADMIN_ROLE",
-    "outputs": [
+    inputs: [],
+    name: "DEFAULT_ADMIN_ROLE",
+    outputs: [
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "MINTER_ROLE",
-    "outputs": [
+    inputs: [],
+    name: "MINTER_ROLE",
+    outputs: [
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "UPGRADER_ROLE",
-    "outputs": [
+    inputs: [],
+    name: "UPGRADER_ROLE",
+    outputs: [
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "UPGRADE_INTERFACE_VERSION",
-    "outputs": [
+    inputs: [],
+    name: "UPGRADE_INTERFACE_VERSION",
+    outputs: [
       {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "enum ICardRegistry.Rarity",
-        "name": "rarity",
-        "type": "uint8"
-      }
+        internalType: "enum ICardRegistry.Rarity",
+        name: "rarity",
+        type: "uint8",
+      },
     ],
-    "name": "getRarityDropRate",
-    "outputs": [
+    name: "getRarityDropRate",
+    outputs: [
       {
-        "internalType": "uint16",
-        "name": "",
-        "type": "uint16"
-      }
+        internalType: "uint16",
+        name: "",
+        type: "uint16",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
-      }
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32",
+      },
     ],
-    "name": "getRoleAdmin",
-    "outputs": [
+    name: "getRoleAdmin",
+    outputs: [
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "cardId",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "cardId",
+        type: "uint256",
+      },
     ],
-    "name": "getTemplate",
-    "outputs": [
+    name: "getTemplate",
+    outputs: [
       {
-        "components": [
-          { "internalType": "uint256", "name": "cardId", "type": "uint256" },
-          { "internalType": "bytes32", "name": "skillId", "type": "bytes32" },
-          { "internalType": "uint32", "name": "supplyCap", "type": "uint32" },
-          { "internalType": "uint32", "name": "minted", "type": "uint32" },
-          { "internalType": "uint16", "name": "atkBase", "type": "uint16" },
-          { "internalType": "uint16", "name": "defBase", "type": "uint16" },
-          { "internalType": "uint16", "name": "spdBase", "type": "uint16" },
-          { "internalType": "uint16", "name": "hpBase", "type": "uint16" },
-          { "internalType": "uint8", "name": "cardType", "type": "uint8" },
-          { "internalType": "uint8", "name": "rarity", "type": "uint8" },
-          { "internalType": "bool", "name": "active", "type": "bool" }
+        components: [
+          {
+            internalType: "uint256",
+            name: "cardId",
+            type: "uint256",
+          },
+          {
+            internalType: "bytes32",
+            name: "skillId",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint32",
+            name: "supplyCap",
+            type: "uint32",
+          },
+          {
+            internalType: "uint32",
+            name: "minted",
+            type: "uint32",
+          },
+          {
+            internalType: "uint16",
+            name: "atkBase",
+            type: "uint16",
+          },
+          {
+            internalType: "uint16",
+            name: "defBase",
+            type: "uint16",
+          },
+          {
+            internalType: "uint16",
+            name: "spdBase",
+            type: "uint16",
+          },
+          {
+            internalType: "uint16",
+            name: "hpBase",
+            type: "uint16",
+          },
+          {
+            internalType: "uint8",
+            name: "cardType",
+            type: "uint8",
+          },
+          {
+            internalType: "uint8",
+            name: "rarity",
+            type: "uint8",
+          },
+          {
+            internalType: "bool",
+            name: "active",
+            type: "bool",
+          },
         ],
-        "internalType": "struct ICardRegistry.CardTemplate",
-        "name": "",
-        "type": "tuple"
-      }
+        internalType: "struct ICardRegistry.CardTemplate",
+        name: "",
+        type: "tuple",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
-      { "internalType": "address", "name": "account", "type": "address" }
-    ],
-    "name": "grantMinterRole",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "bytes32", "name": "role", "type": "bytes32" },
-      { "internalType": "address", "name": "account", "type": "address" }
-    ],
-    "name": "grantRole",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "bytes32", "name": "role", "type": "bytes32" },
-      { "internalType": "address", "name": "account", "type": "address" }
-    ],
-    "name": "hasRole",
-    "outputs": [
-      { "internalType": "bool", "name": "", "type": "bool" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "cardId", "type": "uint256" }
-    ],
-    "name": "incrementMinted",
-    "outputs": [
-      { "internalType": "bool", "name": "", "type": "bool" }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "address", "name": "admin", "type": "address" }
-    ],
-    "name": "initialize",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "cardId", "type": "uint256" }
-    ],
-    "name": "isSupplyCapped",
-    "outputs": [
-      { "internalType": "bool", "name": "", "type": "bool" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "proxiableUUID",
-    "outputs": [
-      { "internalType": "bytes32", "name": "", "type": "bytes32" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
+    inputs: [
       {
-        "components": [
-          { "internalType": "uint256", "name": "cardId", "type": "uint256" },
-          { "internalType": "bytes32", "name": "skillId", "type": "bytes32" },
-          { "internalType": "uint32", "name": "supplyCap", "type": "uint32" },
-          { "internalType": "uint32", "name": "minted", "type": "uint32" },
-          { "internalType": "uint16", "name": "atkBase", "type": "uint16" },
-          { "internalType": "uint16", "name": "defBase", "type": "uint16" },
-          { "internalType": "uint16", "name": "spdBase", "type": "uint16" },
-          { "internalType": "uint16", "name": "hpBase", "type": "uint16" },
-          { "internalType": "uint8", "name": "cardType", "type": "uint8" },
-          { "internalType": "uint8", "name": "rarity", "type": "uint8" },
-          { "internalType": "bool", "name": "active", "type": "bool" }
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+    ],
+    name: "grantMinterRole",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32",
+      },
+      {
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+    ],
+    name: "grantRole",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32",
+      },
+      {
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+    ],
+    name: "hasRole",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "cardId",
+        type: "uint256",
+      },
+    ],
+    name: "incrementMinted",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "admin",
+        type: "address",
+      },
+    ],
+    name: "initialize",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "cardId",
+        type: "uint256",
+      },
+    ],
+    name: "isSupplyCapped",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "maxCardId",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "proxiableUUID",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "cardId",
+            type: "uint256",
+          },
+          {
+            internalType: "bytes32",
+            name: "skillId",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint32",
+            name: "supplyCap",
+            type: "uint32",
+          },
+          {
+            internalType: "uint32",
+            name: "minted",
+            type: "uint32",
+          },
+          {
+            internalType: "uint16",
+            name: "atkBase",
+            type: "uint16",
+          },
+          {
+            internalType: "uint16",
+            name: "defBase",
+            type: "uint16",
+          },
+          {
+            internalType: "uint16",
+            name: "spdBase",
+            type: "uint16",
+          },
+          {
+            internalType: "uint16",
+            name: "hpBase",
+            type: "uint16",
+          },
+          {
+            internalType: "uint8",
+            name: "cardType",
+            type: "uint8",
+          },
+          {
+            internalType: "uint8",
+            name: "rarity",
+            type: "uint8",
+          },
+          {
+            internalType: "bool",
+            name: "active",
+            type: "bool",
+          },
         ],
-        "internalType": "struct ICardRegistry.CardTemplate",
-        "name": "t",
-        "type": "tuple"
-      }
+        internalType: "struct ICardRegistry.CardTemplate",
+        name: "t",
+        type: "tuple",
+      },
     ],
-    "name": "registerCard",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: "registerCard",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [
-      { "internalType": "bytes32", "name": "role", "type": "bytes32" },
-      { "internalType": "address", "name": "callerConfirmation", "type": "address" }
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32",
+      },
+      {
+        internalType: "address",
+        name: "callerConfirmation",
+        type: "address",
+      },
     ],
-    "name": "renounceRole",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: "renounceRole",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [
-      { "internalType": "bytes32", "name": "role", "type": "bytes32" },
-      { "internalType": "address", "name": "account", "type": "address" }
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32",
+      },
+      {
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
     ],
-    "name": "revokeRole",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: "revokeRole",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [
-      { "internalType": "bytes4", "name": "interfaceId", "type": "bytes4" }
+    inputs: [
+      {
+        internalType: "bytes4",
+        name: "interfaceId",
+        type: "bytes4",
+      },
     ],
-    "name": "supportsInterface",
-    "outputs": [
-      { "internalType": "bool", "name": "", "type": "bool" }
+    name: "supportsInterface",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
-      { "internalType": "address", "name": "newImplementation", "type": "address" },
-      { "internalType": "bytes", "name": "data", "type": "bytes" }
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "highestRegisteredId",
+        type: "uint256",
+      },
     ],
-    "name": "upgradeToAndCall",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
-  }
+    name: "syncMaxCardId",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "newImplementation",
+        type: "address",
+      },
+      {
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
+      },
+    ],
+    name: "upgradeToAndCall",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
 ] as const;
