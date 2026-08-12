@@ -9,6 +9,7 @@
 import { Hono } from "hono";
 
 import { ValidationError } from "../lib/errors";
+import { heavyReadLimit } from "../middleware/rateLimit";
 import { leaderboardService } from "../services/leaderboardService";
 
 /**
@@ -24,6 +25,10 @@ function parseLimit(raw: string | undefined, max = 100): number {
 }
 
 const leaderboardRouter = new Hono();
+
+// Every route here is an unauthenticated aggregate query — 30 req/min per IP,
+// tighter than the global 60/min. Applies to routes added later too.
+leaderboardRouter.use(heavyReadLimit);
 
 // ---------------------------------------------------------------------------
 // GET /ranked

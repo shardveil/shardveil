@@ -180,17 +180,8 @@ export const authVerifyLimit = rateLimit({
   name: "auth:verify",
 });
 
-/**
- * Pre-configured rate limit: Chat messages
- * - 1 message per 3 seconds per wallet address
- * - Tight limit to prevent spam
- */
-export const chatLimit = rateLimit({
-  windowMs: 3_000,
-  max: 1,
-  keyBy: "address",
-  name: "chat",
-});
+// No HTTP chat limiter here on purpose: chat send is WebSocket-only and
+// enforces its own 1 msg / 3 s budget in ws/channels/chatChannel.ts.
 
 /**
  * Pre-configured rate limit: Standard API requests

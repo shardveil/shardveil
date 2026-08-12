@@ -135,6 +135,51 @@ describe("Auth routes", () => {
     expect(body.success).toBe(true);
   });
 
+  it("GET /auth/nonce — 11th request in a window is rate limited", async () => {
+    const ip = "203.0.113.10";
+    const send = () =>
+      app.request("/auth/nonce", { headers: { "x-forwarded-for": ip } });
+
+    for (let i = 0; i < 10; i++) {
+      expect((await send()).status).toBe(200);
+    }
+
+    const blocked = await send();
+    expect(blocked.status).toBe(429);
+    expect(Number(blocked.headers.get("Retry-After"))).toBeGreaterThan(0);
+  });
+
+  it("POST /auth/verify — 6th request in a window is rate limited", async () => {
+    const ip = "203.0.113.11";
+    // Bad signatures are fine here — the limiter runs before the handler.
+    const send = () =>
+      app.request("/auth/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-forwarded-for": ip },
+        body: JSON.stringify({ message: "nope", signature: "0xdead" }),
+      });
+
+    for (let i = 0; i < 5; i++) {
+      expect((await send()).status).not.toBe(429);
+    }
+
+    expect((await send()).status).toBe(429);
+  });
+
+  it("rate limit buckets are per-IP, not global", async () => {
+    const flood = () =>
+      app.request("/auth/nonce", {
+        headers: { "x-forwarded-for": "203.0.113.20" },
+      });
+
+    for (let i = 0; i < 11; i++) await flood();
+
+    const otherIp = await app.request("/auth/nonce", {
+      headers: { "x-forwarded-for": "203.0.113.21" },
+    });
+    expect(otherIp.status).toBe(200);
+  });
+
   it("POST /auth/logout — clears presence even with valid token", async () => {
     const { nonce } = await fetchNonce();
     const { message, signature } = await buildSignedMessage(nonce);

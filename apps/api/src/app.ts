@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { except } from "hono/combine";
 import { cors } from "hono/cors";
 
 import { prisma } from "./config/database";
@@ -34,7 +35,9 @@ app.use(
   }),
 );
 
-app.use(standardLimit);
+// /health is exempt: uptime monitors poll it faster than 60/min per IP, and a
+// 429 there reads as an outage rather than the rate limit doing its job.
+app.use(except("/health", standardLimit));
 
 app.onError(errorHandler);
 

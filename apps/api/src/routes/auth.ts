@@ -10,6 +10,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 
 import { ValidationError } from "../lib/errors";
+import { authNonceLimit, authVerifyLimit } from "../middleware/rateLimit";
 import {
   clearPresence,
   issueNonce,
@@ -22,8 +23,8 @@ const auth = new Hono();
 // GET /auth/nonce
 // ---------------------------------------------------------------------------
 
-// TODO(Task 3.9): Apply rate limiting here — 10 requests/min per IP
-auth.get("/nonce", (c) => {
+// Rate limited: 10 req/min per IP — caps brute-force nonce harvesting.
+auth.get("/nonce", authNonceLimit, (c) => {
   const { nonce, expiresAt } = issueNonce();
   return c.json({ nonce, expiresAt });
 });
@@ -37,8 +38,8 @@ const verifyBodySchema = z.object({
   signature: z.string().regex(/^0x[0-9a-fA-F]+$/),
 });
 
-// TODO(Task 3.9): Apply rate limiting here — 10 requests/min per IP
-auth.post("/verify", async (c) => {
+// Rate limited: 5 req/min per IP — caps signature-guessing attempts.
+auth.post("/verify", authVerifyLimit, async (c) => {
   const body = await c.req.json().catch(() => null);
 
   const parsed = verifyBodySchema.safeParse(body);
