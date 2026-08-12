@@ -13,13 +13,19 @@ import {
   veilTokenAbi,
 } from "@shardveil/contracts";
 import {
+  ARBITRUM_RPC_FALLBACKS,
+  ARBITRUM_SEPOLIA_RPC_FALLBACKS,
+} from "@shardveil/shared";
+import {
   type Address,
   createPublicClient,
   createWalletClient,
+  fallback,
   getContract as viemGetContract,
   type Hash,
   type Hex,
   http,
+  type PublicClient,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { arbitrum, arbitrumSepolia } from "viem/chains";
@@ -45,9 +51,22 @@ const rpcUrl =
 /**
  * Public client for read-only operations (getBlockNumber, call, simulate, etc.)
  */
-export const publicClient = createPublicClient({
+export const publicClient: PublicClient = createPublicClient({
   chain,
-  transport: http(rpcUrl),
+  // Configured endpoint first, then public fallbacks. A single transport meant a
+  // throttled host produced empty eth_call results, which read as "card not
+  // found" and as an empty marketplace. fallback() rolls over instead.
+  transport: fallback(
+    [
+      ...new Set([
+        rpcUrl,
+        ...(env.NODE_ENV === "production"
+          ? ARBITRUM_RPC_FALLBACKS
+          : ARBITRUM_SEPOLIA_RPC_FALLBACKS),
+      ]),
+    ].map((url) => http(url, { retryCount: 2 })),
+    { rank: false },
+  ),
 });
 
 /**

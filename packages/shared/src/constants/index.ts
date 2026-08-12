@@ -90,3 +90,27 @@ export const RARITY_COLORS: Record<CardRarity, string> = {
   LEGENDARY: "border-gold-400 shadow-gold-400/40",
   MYTHIC: "border-mythic-400 shadow-mythic-400/80",
 };
+
+/**
+ * Public Arbitrum Sepolia RPCs used as fallbacks behind any configured endpoint.
+ *
+ * The official rollup endpoint rate-limits hard: throttling there is what made
+ * /cards/[id] answer 404 for real cards, /health flag the indexer as lagging,
+ * and browser reads of packConfigs fail with "Failed to fetch". All of these
+ * send `access-control-allow-origin: *`, so they work from the browser too.
+ *
+ * A dedicated provider key still belongs in front of these — this only stops one
+ * throttled host from taking a request down.
+ */
+export const ARBITRUM_SEPOLIA_RPC_FALLBACKS = [
+  "https://arbitrum-sepolia.drpc.org",
+  "https://arbitrum-sepolia-rpc.publicnode.com",
+  "https://sepolia-rollup.arbitrum.io/rpc",
+] as const;
+
+/** Same idea for mainnet. */
+export const ARBITRUM_RPC_FALLBACKS = [
+  "https://arb1.arbitrum.io/rpc",
+  "https://arbitrum.drpc.org",
+  "https://arbitrum-one-rpc.publicnode.com",
+] as const;
