@@ -129,6 +129,8 @@ export interface PurchaseResult {
   /** Present only when an approval was actually needed. */
   approveHash?: Hash;
   price: bigint;
+  /** Block the purchase landed in — the reveal scans for PackFulfilled from here. */
+  blockNumber: bigint;
 }
 
 /**
@@ -214,9 +216,11 @@ export async function purchasePack(
     );
   }
 
+  const blockNumber = receipt.blockNumber;
+
   return approveHash === undefined
-    ? { requestId, buyHash, price }
-    : { requestId, buyHash, approveHash, price };
+    ? { requestId, buyHash, price, blockNumber }
+    : { requestId, buyHash, approveHash, price, blockNumber };
 }
 
 /**

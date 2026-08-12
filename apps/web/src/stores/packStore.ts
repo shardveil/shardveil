@@ -18,6 +18,12 @@ export type PackState = {
   pendingRequestId: string | null;
   /** Cards revealed after a pack open animation */
   revealedCards: CardResult[];
+  /**
+   * Card ids minted by the last fulfilled pack. The chain only tells us ids;
+   * names/rarity/art come from the catalogue, so the UI hydrates these into
+   * `revealedCards` separately.
+   */
+  revealedCardIds: number[];
   isRevealing: boolean;
   currentPackTier: PackTier | null;
   pityCounters: PityCounters;
@@ -27,6 +33,7 @@ export type PackActions = {
   setPendingRequest: (requestId: string | null) => void;
   setRevealing: (revealing: boolean) => void;
   setRevealedCards: (cards: CardResult[]) => void;
+  setRevealedCardIds: (cardIds: number[]) => void;
   setPackTier: (tier: PackTier | null) => void;
   incrementPity: (rarity: CardRarity) => void;
   resetPity: (rarity: CardRarity) => void;
@@ -40,6 +47,7 @@ export type PackStore = PackState & PackActions;
 const initialState: PackState = {
   pendingRequestId: null,
   revealedCards: [],
+  revealedCardIds: [],
   isRevealing: false,
   currentPackTier: null,
   pityCounters: {},
@@ -79,6 +87,15 @@ export const usePackStore = create<PackStore>()(
           "setRevealedCards",
         ),
 
+      setRevealedCardIds: (cardIds) =>
+        set(
+          (state) => {
+            state.revealedCardIds = cardIds;
+          },
+          false,
+          "setRevealedCardIds",
+        ),
+
       setPackTier: (tier) =>
         set(
           (state) => {
@@ -111,6 +128,7 @@ export const usePackStore = create<PackStore>()(
           (state) => {
             state.pendingRequestId = null;
             state.revealedCards = [];
+            state.revealedCardIds = [];
             state.isRevealing = false;
             state.currentPackTier = null;
           },

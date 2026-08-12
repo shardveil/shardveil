@@ -78,6 +78,7 @@ function fakeClients(overrides: {
     readContract,
     waitForTransactionReceipt: vi.fn(async () => ({
       logs: [packPurchasedLog(requestId)],
+      blockNumber: 4242n,
     })),
   };
 
@@ -221,6 +222,14 @@ describe("purchasePack", () => {
     const result = await run(clients, "PREMIUM");
 
     expect(result.price).toBe(500n * ONE_TOKEN);
+  });
+
+  it("returns the purchase block so the reveal knows where to scan from", async () => {
+    const clients = fakeClients({ allowance: 0n });
+
+    const result = await run(clients);
+
+    expect(result.blockNumber).toBe(4242n);
   });
 
   it("refuses before prompting the wallet when the balance is short", async () => {

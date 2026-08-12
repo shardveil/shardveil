@@ -15,6 +15,7 @@ import {
   purchasePack,
   toPurchaseError,
 } from "@/lib/packPurchase";
+import { waitForPackFulfillment } from "@/lib/packReveal";
 import { usePackStore } from "@/stores/packStore";
 
 /**
@@ -31,6 +32,8 @@ export function usePackPurchase() {
 
   const setPendingRequest = usePackStore((s) => s.setPendingRequest);
   const setPackTier = usePackStore((s) => s.setPackTier);
+  const setRevealing = usePackStore((s) => s.setRevealing);
+  const setRevealedCardIds = usePackStore((s) => s.setRevealedCardIds);
 
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [error, setError] = useState<PackPurchaseError | null>(null);
@@ -66,8 +69,30 @@ export function usePackPurchase() {
         });
 
         setPackTier(tier);
-        // VRF fulfillment lands in a later block; the reveal watches this id.
+        // VRF fulfillment lands in a later block; the reveal polls for this id.
         setPendingRequest(result.requestId.toString());
+        setRevealing(true);
+
+        try {
+          const reveal = await waitForPackFulfillment({
+            publicClient,
+            packContract: deployment!.packContract,
+            cardNft: deployment!.cardNFT,
+            buyer: address,
+            requestId: result.requestId,
+            fromBlock: result.blockNumber,
+          });
+
+          setRevealedCardIds(reveal.cardIds);
+        } catch (revealError) {
+          // The SHARD is already burned and the cards are already minted on
+          // chain — a reveal timeout is a display failure, not a lost pack.
+          setError(toPurchaseError(revealError));
+        } finally {
+          setRevealing(false);
+          setPendingRequest(null);
+        }
+
         return result;
       } catch (caught) {
         setError(toPurchaseError(caught));
@@ -83,6 +108,8 @@ export function usePackPurchase() {
       deployment,
       setPackTier,
       setPendingRequest,
+      setRevealing,
+      setRevealedCardIds,
     ],
   );
 
