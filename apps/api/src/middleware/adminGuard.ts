@@ -1,6 +1,5 @@
 import {
   ammMarketplaceAbi,
-  ARBITRUM_SEPOLIA_CHAIN_ID,
   battleEngineAbi,
   cardNftAbi,
   cardRegistryAbi,
@@ -15,7 +14,7 @@ import {
 import type { MiddlewareHandler } from "hono";
 
 import { logger } from "../config/logger";
-import { publicClient } from "../config/viem";
+import { ACTIVE_CHAIN_ID, publicClient } from "../config/viem";
 import { ForbiddenError, UnauthorizedError } from "../lib/errors";
 import { cacheService } from "../services/cacheService";
 
@@ -26,43 +25,43 @@ import { cacheService } from "../services/cacheService";
 const CONTRACT_ABI_MAP = {
   cardRegistry: {
     abi: cardRegistryAbi,
-    address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).cardRegistry,
+    address: getAddresses(ACTIVE_CHAIN_ID).cardRegistry,
   },
   guildSystem: {
     abi: guildSystemAbi,
-    address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).guildSystem,
+    address: getAddresses(ACTIVE_CHAIN_ID).guildSystem,
   },
   ammMarketplace: {
     abi: ammMarketplaceAbi,
-    address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).ammMarketplace,
+    address: getAddresses(ACTIVE_CHAIN_ID).ammMarketplace,
   },
   battleEngine: {
     abi: battleEngineAbi,
-    address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).battleEngine,
+    address: getAddresses(ACTIVE_CHAIN_ID).battleEngine,
   },
   shardToken: {
     abi: shardTokenAbi,
-    address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).shardToken,
+    address: getAddresses(ACTIVE_CHAIN_ID).shardToken,
   },
   veilToken: {
     abi: veilTokenAbi,
-    address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).veilToken,
+    address: getAddresses(ACTIVE_CHAIN_ID).veilToken,
   },
   cardNFT: {
     abi: cardNftAbi,
-    address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).cardNFT,
+    address: getAddresses(ACTIVE_CHAIN_ID).cardNFT,
   },
   packContract: {
     abi: packContractAbi,
-    address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).packContract,
+    address: getAddresses(ACTIVE_CHAIN_ID).packContract,
   },
   treasury: {
     abi: treasuryAbi,
-    address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).treasury,
+    address: getAddresses(ACTIVE_CHAIN_ID).treasury,
   },
   craftingEngine: {
     abi: craftingEngineAbi,
-    address: getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID).craftingEngine,
+    address: getAddresses(ACTIVE_CHAIN_ID).craftingEngine,
   },
 } as const;
 

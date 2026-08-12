@@ -12,12 +12,16 @@
  *   Value: JSON array of PairingEntry[]
  */
 
-import { ARBITRUM_SEPOLIA_CHAIN_ID, getAddresses } from "@shardveil/contracts";
+import { getAddresses } from "@shardveil/contracts";
 
 import { prisma } from "../config/database";
 import { logger } from "../config/logger";
 import { redis } from "../config/redis";
-import { publicClient, tournamentOracleWallet } from "../config/viem";
+import {
+  ACTIVE_CHAIN_ID,
+  publicClient,
+  tournamentOracleWallet,
+} from "../config/viem";
 import * as notificationService from "./notificationService";
 
 // ---------------------------------------------------------------------------
@@ -389,7 +393,7 @@ async function finalizeTournament(tournamentId: string): Promise<void> {
   );
 
   // 3. Attempt on-chain finalization
-  const addresses = getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID);
+  const addresses = getAddresses(ACTIVE_CHAIN_ID);
   // tournamentEngine is not in the addresses map yet — guard gracefully
   const tournamentEngineAddress = (addresses as Record<string, string | null>)[
     "tournamentEngine"

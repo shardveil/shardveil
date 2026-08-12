@@ -12,10 +12,7 @@ import {
   treasuryAbi,
   veilTokenAbi,
 } from "@shardveil/contracts";
-import {
-  ARBITRUM_RPC_FALLBACKS,
-  ARBITRUM_SEPOLIA_RPC_FALLBACKS,
-} from "@shardveil/shared";
+import { ARBITRUM_SEPOLIA_RPC_FALLBACKS } from "@shardveil/shared";
 import {
   type Address,
   createPublicClient,
@@ -28,7 +25,7 @@ import {
   type PublicClient,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { arbitrum, arbitrumSepolia } from "viem/chains";
+import { arbitrumSepolia } from "viem/chains";
 
 import { env } from "./env";
 
@@ -38,15 +35,22 @@ import { env } from "./env";
 export type { Address, Hash, Hex };
 
 /**
- * Select chain and RPC URL based on NODE_ENV.
- * Production → Arbitrum One
- * Dev/test → Arbitrum Sepolia
+ * The chain this deployment is bound to — the single source for both the RPC
+ * transport below and every `getAddresses()` call in the API.
+ *
+ * Chain and addresses have to move together. Selecting the chain from
+ * NODE_ENV, as this used to, put the deployed API on Arbitrum One (render.yaml
+ * sets NODE_ENV=production) while every read still used the Sepolia address
+ * book, where those addresses have no code — so contract reads came back empty
+ * rather than failing, and read as "no cards" / "empty marketplace".
+ *
+ * Mainnet launch: fill in the ARBITRUM_ONE map in packages/contracts, widen
+ * SupportedChainId, and change this one line.
  */
-const chain = env.NODE_ENV === "production" ? arbitrum : arbitrumSepolia;
-const rpcUrl =
-  env.NODE_ENV === "production"
-    ? env.ARBITRUM_RPC_URL
-    : env.ARBITRUM_SEPOLIA_RPC_URL;
+export const ACTIVE_CHAIN_ID = ARBITRUM_SEPOLIA_CHAIN_ID;
+
+const chain = arbitrumSepolia;
+const rpcUrl = env.ARBITRUM_SEPOLIA_RPC_URL;
 
 /**
  * Public client for read-only operations (getBlockNumber, call, simulate, etc.)
@@ -57,14 +61,9 @@ export const publicClient: PublicClient = createPublicClient({
   // throttled host produced empty eth_call results, which read as "card not
   // found" and as an empty marketplace. fallback() rolls over instead.
   transport: fallback(
-    [
-      ...new Set([
-        rpcUrl,
-        ...(env.NODE_ENV === "production"
-          ? ARBITRUM_RPC_FALLBACKS
-          : ARBITRUM_SEPOLIA_RPC_FALLBACKS),
-      ]),
-    ].map((url) => http(url, { retryCount: 2 })),
+    [...new Set([rpcUrl, ...ARBITRUM_SEPOLIA_RPC_FALLBACKS])].map((url) =>
+      http(url, { retryCount: 2 }),
+    ),
     { rank: false },
   ),
 });
@@ -151,7 +150,7 @@ type ContractName = keyof typeof CONTRACT_ABIS;
 
 /**
  * Helper to get a viem contract instance with ABI + address from @shardveil/contracts.
- * Always uses ARBITRUM_SEPOLIA addresses for now (Arbitrum One addresses are null).
+ * Bound to ACTIVE_CHAIN_ID, the same chain publicClient talks to.
  * Returns a contract instance bound to publicClient for read-only operations.
  *
  * @param name - Contract name (e.g., 'cardRegistry', 'shardToken')
@@ -160,7 +159,7 @@ type ContractName = keyof typeof CONTRACT_ABIS;
 export function getContract(
   name: ContractName,
 ): ReturnType<typeof viemGetContract> {
-  const addresses = getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID);
+  const addresses = getAddresses(ACTIVE_CHAIN_ID);
   const address = addresses[name];
 
   if (!address) {

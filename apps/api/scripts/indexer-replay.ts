@@ -14,7 +14,6 @@
 
 import {
   ammMarketplaceAbi,
-  ARBITRUM_SEPOLIA_CHAIN_ID,
   battleEngineAbi,
   cardNftAbi,
   craftingEngineAbi,
@@ -29,7 +28,7 @@ import {
 import { prisma } from "../src/config/database";
 import { logger } from "../src/config/logger";
 import { redis } from "../src/config/redis";
-import { publicClient } from "../src/config/viem";
+import { ACTIVE_CHAIN_ID, publicClient } from "../src/config/viem";
 import { indexerService } from "../src/services/indexerService";
 
 // ---------------------------------------------------------------------------
@@ -181,7 +180,7 @@ function buildContractEvents(
 
 async function main(): Promise<void> {
   const { contract: targetContract, from: fromBlock } = parseArgs();
-  const chainAddresses = getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID);
+  const chainAddresses = getAddresses(ACTIVE_CHAIN_ID);
   const allContractEvents = buildContractEvents(chainAddresses);
 
   // Filter to only events belonging to the requested contract

@@ -16,14 +16,14 @@
  * Do NOT register process.on("SIGTERM") here — index.ts handles signals.
  */
 
-import { ARBITRUM_SEPOLIA_CHAIN_ID, getAddresses } from "@shardveil/contracts";
+import { getAddresses } from "@shardveil/contracts";
 import type { Job } from "bullmq";
 import { Worker } from "bullmq";
 
 import { logger } from "../config/logger";
 import { bullConnection, XP_GRANTS_QUEUE } from "../config/queue";
 import { redis } from "../config/redis";
-import { publicClient, xpOracleWallet } from "../config/viem";
+import { ACTIVE_CHAIN_ID, publicClient, xpOracleWallet } from "../config/viem";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -124,7 +124,7 @@ async function processXpGrantJob(job: Job<XpGrantJob>): Promise<void> {
   }
 
   // 2. Check if SeasonPass contract is deployed
-  const addresses = getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID);
+  const addresses = getAddresses(ACTIVE_CHAIN_ID);
 
   // seasonPass is not yet in the addresses map — guard with type assertion
   const seasonPassAddress = (addresses as Record<string, string | null>)[

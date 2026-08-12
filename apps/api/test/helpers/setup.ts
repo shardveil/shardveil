@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
+import { ARBITRUM_SEPOLIA_CHAIN_ID } from "@shardveil/contracts";
 import type Redis from "ioredis";
 import { afterAll, beforeEach, vi } from "vitest";
 
@@ -24,6 +25,9 @@ export function createWsTestClient(_address: string) {
 
 // Mock publicClient — never make real RPC calls in tests
 vi.mock("../../src/config/viem", () => ({
+  // Real value, not a stand-in: the address book is keyed by it, so a drifting
+  // mock would silently resolve every contract address to undefined.
+  ACTIVE_CHAIN_ID: ARBITRUM_SEPOLIA_CHAIN_ID,
   publicClient: {
     getBlockNumber: vi.fn().mockResolvedValue(BigInt(1)),
     readContract: vi.fn().mockResolvedValue(null),

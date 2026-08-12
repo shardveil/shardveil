@@ -1,5 +1,3 @@
-import { describe, expect, it, vi } from "vitest";
-
 /**
  * /cards/2, /cards/5 and friends were intermittently answering
  *   404 {"code":"NOT_FOUND","message":"Card not found"}
@@ -10,6 +8,9 @@ import { describe, expect, it, vi } from "vitest";
  * `active === false` was treated as "no such card". A 404 is the damaging answer
  * here: Next caches notFound() as a permanent not-found page for a real card.
  */
+
+import { ARBITRUM_SEPOLIA_CHAIN_ID } from "@shardveil/contracts";
+import { describe, expect, it, vi } from "vitest";
 const ZEROED = {
   cardId: 0n,
   rarity: 0,
@@ -25,6 +26,7 @@ const ZEROED = {
 
 function mockViem(getTemplate: () => unknown, maxCardId = 1000n) {
   vi.doMock("../src/config/viem", () => ({
+    ACTIVE_CHAIN_ID: ARBITRUM_SEPOLIA_CHAIN_ID,
     publicClient: {
       readContract: vi.fn(
         async ({ functionName }: { functionName: string }) => {

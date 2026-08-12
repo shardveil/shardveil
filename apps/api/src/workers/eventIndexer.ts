@@ -17,7 +17,6 @@
 
 import {
   ammMarketplaceAbi,
-  ARBITRUM_SEPOLIA_CHAIN_ID,
   battleEngineAbi,
   cardNftAbi,
   craftingEngineAbi,
@@ -31,7 +30,7 @@ import {
 
 import { logger } from "../config/logger";
 import { redis } from "../config/redis";
-import { publicClient } from "../config/viem";
+import { ACTIVE_CHAIN_ID, publicClient } from "../config/viem";
 import { extractAddresses } from "../lib/extractAddresses";
 import { indexerService } from "../services/indexerService";
 
@@ -39,7 +38,7 @@ import { indexerService } from "../services/indexerService";
 // Addresses
 // ---------------------------------------------------------------------------
 
-const addresses = getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID);
+const addresses = getAddresses(ACTIVE_CHAIN_ID);
 
 // ---------------------------------------------------------------------------
 // Contract names exported so that indexer-status.ts can stay in sync

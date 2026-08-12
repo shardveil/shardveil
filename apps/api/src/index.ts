@@ -4,13 +4,14 @@ import "./workers/tournamentWorker"; // side-effect: starts the BullMQ tournamen
 import "./workers/xpSigner"; // side-effect: starts the XP signer worker
 
 import { serve } from "@hono/node-server";
-import { ARBITRUM_SEPOLIA_CHAIN_ID, getAddresses } from "@shardveil/contracts";
+import { getAddresses } from "@shardveil/contracts";
 
 import { app } from "./app";
 import { prisma } from "./config/database";
 import { env } from "./config/env";
 import { logger } from "./config/logger";
 import { redis } from "./config/redis";
+import { ACTIVE_CHAIN_ID } from "./config/viem";
 import { shutdown as shutdownActivityGenerator } from "./workers/activityGenerator"; // side-effect: already imported above
 import { shutdown as shutdownIndexer } from "./workers/eventIndexer"; // side-effect: starts the viem event indexer
 import { shutdown as shutdownSettlementSigner } from "./workers/settlementSigner"; // side-effect: starts the settlement signer worker
@@ -26,7 +27,7 @@ const { wsApp, injectWebSocket } = createWsApp();
 app.route("/ws", wsApp);
 
 const server = serve({ fetch: app.fetch, port: env.PORT }, () => {
-  const addresses = getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID);
+  const addresses = getAddresses(ACTIVE_CHAIN_ID);
   logger.info(
     {
       port: env.PORT,

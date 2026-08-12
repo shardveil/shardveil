@@ -18,22 +18,18 @@
  * Do NOT register process.on("SIGTERM") here — index.ts handles signals.
  */
 
-import {
-  ARBITRUM_SEPOLIA_CHAIN_ID,
-  getAddresses,
-  packContractAbi,
-} from "@shardveil/contracts";
+import { getAddresses, packContractAbi } from "@shardveil/contracts";
 
 import { logger } from "../config/logger";
 import { redis } from "../config/redis";
-import { publicClient } from "../config/viem";
+import { ACTIVE_CHAIN_ID, publicClient } from "../config/viem";
 import { connectionManager } from "../ws/connectionManager";
 
 // ---------------------------------------------------------------------------
 // Addresses
 // ---------------------------------------------------------------------------
 
-const addresses = getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID);
+const addresses = getAddresses(ACTIVE_CHAIN_ID);
 
 // ---------------------------------------------------------------------------
 // Internal state

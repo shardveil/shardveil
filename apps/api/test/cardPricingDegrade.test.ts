@@ -1,5 +1,3 @@
-import { describe, expect, it, vi } from "vitest";
-
 /**
  * The card catalogue comes from CardRegistry. AMM pools only add buy/sell
  * prices, so an RPC failure reading pools must not take the catalogue with it.
@@ -9,6 +7,9 @@ import { describe, expect, it, vi } from "vitest";
  * {"error":{"code":"RPC_ERROR","message":"Failed to fetch marketplace pools"}}
  * for a card that was registered and perfectly renderable without a price.
  */
+
+import { ARBITRUM_SEPOLIA_CHAIN_ID } from "@shardveil/contracts";
+import { describe, expect, it, vi } from "vitest";
 describe("card catalogue when the AMM RPC fails", () => {
   it("serves cards with poolId null instead of failing the request", async () => {
     vi.resetModules();
@@ -28,6 +29,7 @@ describe("card catalogue when the AMM RPC fails", () => {
     };
 
     vi.doMock("../src/config/viem", () => ({
+      ACTIVE_CHAIN_ID: ARBITRUM_SEPOLIA_CHAIN_ID,
       publicClient: {
         readContract: vi.fn(
           async ({ functionName }: { functionName: string }) => {

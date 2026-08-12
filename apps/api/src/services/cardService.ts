@@ -13,13 +13,12 @@
 
 import {
   ammMarketplaceAbi,
-  ARBITRUM_SEPOLIA_CHAIN_ID,
   cardRegistryAbi,
   getAddresses,
 } from "@shardveil/contracts";
 
 import { logger } from "../config/logger";
-import { publicClient } from "../config/viem";
+import { ACTIVE_CHAIN_ID, publicClient } from "../config/viem";
 import { ApiError, NotFoundError } from "../lib/errors";
 import { cacheService } from "./cacheService";
 import { getCardNames } from "./cardMetadataService";
@@ -367,7 +366,7 @@ export async function getAllTemplates(): Promise<[CardCatalogItem[], string]> {
       return [cached.templates, cached.cachedAt];
     }
 
-    const addresses = getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID);
+    const addresses = getAddresses(ACTIVE_CHAIN_ID);
     const cardRegistry = addresses.cardRegistry;
     const ammMarketplace = addresses.ammMarketplace;
 
@@ -510,7 +509,7 @@ export async function getCardDetail(cardId: number): Promise<CardDetail> {
       return cached;
     }
 
-    const addresses = getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID);
+    const addresses = getAddresses(ACTIVE_CHAIN_ID);
     const cardRegistry = addresses.cardRegistry;
     const ammMarketplace = addresses.ammMarketplace;
 

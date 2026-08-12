@@ -19,11 +19,7 @@
  * Do NOT register process.on("SIGTERM") here — index.ts handles signals.
  */
 
-import {
-  ARBITRUM_SEPOLIA_CHAIN_ID,
-  battleEngineAbi,
-  getAddresses,
-} from "@shardveil/contracts";
+import { battleEngineAbi, getAddresses } from "@shardveil/contracts";
 import type { Job } from "bullmq";
 import { Worker } from "bullmq";
 
@@ -31,7 +27,7 @@ import { prisma } from "../config/database";
 import { logger } from "../config/logger";
 import { bullConnection, SETTLEMENT_QUEUE } from "../config/queue";
 import { redis } from "../config/redis";
-import { publicClient, settlerWallet } from "../config/viem";
+import { ACTIVE_CHAIN_ID, publicClient, settlerWallet } from "../config/viem";
 import * as notificationService from "../services/notificationService";
 import { connectionManager } from "../ws/connectionManager";
 
@@ -60,7 +56,7 @@ export interface SettlementJob {
 // Constants
 // ---------------------------------------------------------------------------
 
-const addresses = getAddresses(ARBITRUM_SEPOLIA_CHAIN_ID);
+const addresses = getAddresses(ACTIVE_CHAIN_ID);
 const HEARTBEAT_INTERVAL_MS = 30_000;
 const HEARTBEAT_KEY = "worker:heartbeat:settlementSigner";
 const HEARTBEAT_TTL_SECONDS = 60;
