@@ -215,6 +215,19 @@ export const cardNftAbi = [
     inputs: [
       {
         indexed: false,
+        internalType: "string",
+        name: "baseURI",
+        type: "string",
+      },
+    ],
+    name: "BaseURIUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
         internalType: "uint64",
         name: "version",
         type: "uint64",
@@ -845,6 +858,19 @@ export const cardNftAbi = [
       },
     ],
     name: "setApprovalForAll",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "baseURI_",
+        type: "string",
+      },
+    ],
+    name: "setBaseURI",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

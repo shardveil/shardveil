@@ -96,6 +96,22 @@ export const cardRegistryAbi = [
     type: "error",
   },
   {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "current",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "provided",
+        type: "uint256",
+      },
+    ],
+    name: "MaxCardIdNotIncreasing",
+    type: "error",
+  },
+  {
     inputs: [],
     name: "NotInitializing",
     type: "error",
@@ -534,6 +550,19 @@ export const cardRegistryAbi = [
   },
   {
     inputs: [],
+    name: "maxCardId",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "proxiableUUID",
     outputs: [
       {
@@ -668,6 +697,19 @@ export const cardRegistryAbi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "highestRegisteredId",
+        type: "uint256",
+      },
+    ],
+    name: "syncMaxCardId",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
