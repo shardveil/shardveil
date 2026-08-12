@@ -21,6 +21,23 @@ import { INDEXED_CONTRACT_NAMES } from "./workers/eventIndexer";
 
 const VERSION = process.env["npm_package_version"] ?? "0.0.1";
 
+/**
+ * Arbitrum Sepolia produces a block roughly every 0.25s (measured: 0.254s over a
+ * 1000-block window), not the ~12s an Ethereum-mainnet instinct assumes.
+ *
+ * The previous threshold of 100 blocks therefore meant 25 seconds — tighter than
+ * the indexer's own polling, since eventIndexer uses viem watchContractEvent over
+ * an http transport, which polls every 4s and then has to process the batch. So
+ * /health reported eventIndexer "lagging" essentially permanently.
+ *
+ * Expressed as time, the tolerance stays correct if block times change.
+ */
+const ARBITRUM_BLOCK_SECONDS = 0.25;
+export const INDEXER_LAG_TOLERANCE_SECONDS = 300;
+export const INDEXER_LAG_TOLERANCE_BLOCKS = BigInt(
+  Math.round(INDEXER_LAG_TOLERANCE_SECONDS / ARBITRUM_BLOCK_SECONDS),
+);
+
 export const app = new Hono();
 
 // Middleware order: logger → CORS → rate limit → error handler
@@ -127,7 +144,7 @@ app.get("/health", async (c) => {
               const currentBlock = rpcResult.value;
               const lag = currentBlock - maxBlockIndexed;
 
-              if (lag > 100n) {
+              if (lag > INDEXER_LAG_TOLERANCE_BLOCKS) {
                 workers[workerName] = "lagging";
               } else {
                 workers[workerName] = "ok";
