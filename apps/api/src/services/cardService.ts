@@ -539,6 +539,33 @@ export async function getCardDetail(cardId: number): Promise<CardDetail> {
 
     const normalized = normalizeCardTemplate(template);
 
+    // A zeroed struct means the read returned nothing. That happens for an
+    // unregistered id — but also when the RPC rate-limits and answers 0x, which
+    // viem decodes to zeros. Telling a real card "not found" is the worse error:
+    // Next caches notFound() as a permanent 404 page.
+    //
+    // maxCardId separates the two. Inside the registered range the card exists
+    // and the read failed, so report it as an upstream failure and let the
+    // client retry.
+    if (normalized.cardId !== cardId) {
+      const maxCardId = await getMaxCardId(cardRegistry);
+
+      if (cardId <= maxCardId) {
+        logger.error(
+          { cardId, maxCardId },
+          "getTemplate returned an empty struct for a registered card — RPC failure",
+        );
+
+        throw new ApiError(
+          503,
+          "RPC_ERROR",
+          "Card data is temporarily unavailable. Please retry.",
+        );
+      }
+
+      throw new NotFoundError("Card not found");
+    }
+
     if (!normalized.active) {
       throw new NotFoundError("Card not found");
     }

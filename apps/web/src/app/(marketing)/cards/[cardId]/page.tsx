@@ -41,12 +41,15 @@ interface CardDetailApiResponse {
   cardType: number;
 }
 
+/** Thrown only for a genuine 404, so transient failures never render notFound(). */
+class CardNotFoundError extends Error {}
+
 const fetchCard = cache(async (cardId: string): Promise<CardDetail | null> => {
   try {
     const res = await fetch(`${API_URL}/cards/${cardId}`, {
       next: { revalidate: 300 },
     });
-    if (res.status === 404) return null;
+    if (res.status === 404) throw new CardNotFoundError(`card ${cardId}`);
     if (!res.ok) throw new Error(`API error: ${res.status}`);
 
     const data = (await res.json()) as CardDetailApiResponse;
@@ -67,8 +70,13 @@ const fetchCard = cache(async (cardId: string): Promise<CardDetail | null> => {
       health: data.hpBase,
       element: cardTypeLabel(data.cardType),
     };
-  } catch {
-    return null;
+  } catch (error) {
+    // Only a real 404 returns null, and only null reaches notFound(). Swallowing
+    // every failure here meant a rate-limited RPC rendered a permanent
+    // "card doesn't exist" page for a card that exists — and Next caches that.
+    // Rethrow instead: error.tsx offers a retry and reports to Sentry.
+    if (error instanceof CardNotFoundError) return null;
+    throw error;
   }
 });
 
