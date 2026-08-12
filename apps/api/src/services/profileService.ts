@@ -239,8 +239,10 @@ export async function updateAvatar(
  * Check if a username is available (not taken by another player).
  *
  * Caches result for 60 seconds to prevent DB enumeration attacks.
- * Currently checks the database only for uniqueness.
- * TODO: call ProfileRegistry.isUsernameAvailable when Module 02 deploys
+ *
+ * Usernames are a database concern only — there is no on-chain registry, and
+ * no ProfileRegistry contract exists in the contract repo. Postgres holds the
+ * uniqueness constraint that makes this authoritative.
  *
  * @param username - Username to check
  * @returns true if available, false if taken

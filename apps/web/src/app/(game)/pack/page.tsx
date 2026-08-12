@@ -4,19 +4,17 @@ import type { PackTier } from "@shardveil/shared";
 import { Package } from "lucide-react";
 
 import { PackTierSelector } from "@/components/pack/PackTierSelector";
-import { usePackStore } from "@/stores/packStore";
+import { usePackPurchase } from "@/hooks/usePackPurchase";
 
 // ─── PackPage ─────────────────────────────────────────────────────────────────
 
 export default function PackPage() {
-  const setPackTier = usePackStore((s) => s.setPackTier);
+  const { buy, isPurchasing, error } = usePackPurchase();
 
-  // Task 7.2 integration point:
-  // When PackTierCard "Open Pack" is clicked, we store the selected tier
-  // and log it. The actual purchase flow will be wired up in Task 7.2.
+  // Approves the on-chain price when needed, then buys. The VRF request id is
+  // stored for the reveal; fulfillment arrives in a later block.
   function handleSelectTier(tier: PackTier) {
-    setPackTier(tier);
-    console.log("[PackPage] tier selected:", tier);
+    void buy(tier);
   }
 
   return (
@@ -33,6 +31,21 @@ export default function PackPage() {
           Choose a pack tier to open and discover new cards for your collection.
         </p>
       </div>
+
+      {error && (
+        <div
+          role="alert"
+          className="rounded-md border border-blood-600 bg-blood-950/60 px-4 py-3 text-sm font-body text-content-primary"
+        >
+          {error.message}
+        </div>
+      )}
+
+      {isPurchasing && (
+        <p className="text-sm font-body text-content-secondary" role="status">
+          Confirm the transactions in your wallet…
+        </p>
+      )}
 
       {/* Tier selector (handles loading state + pity indicators internally) */}
       <PackTierSelector onSelectTier={handleSelectTier} />

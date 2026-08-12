@@ -1,6 +1,13 @@
 import type { BattleRank, CardRarity, PackTier } from "../types/index";
 
-/** Pack tier configurations (cost in SHARD wei, cards per pack, min rarity, daily limit) */
+/**
+ * Pack tier configurations (cost in SHARD wei, cards per pack, min rarity, daily limit).
+ *
+ * These MUST mirror `packConfigs` in PackContract.initialize(). They are display
+ * defaults only — `buyPack` burns the on-chain price, so an approval built from a
+ * stale value here reverts. Anything spending money reads the chain first; see
+ * apps/web/src/lib/packPurchase.ts.
+ */
 export const PACK_TIERS: Record<
   PackTier,
   {
@@ -12,27 +19,27 @@ export const PACK_TIERS: Record<
 > = {
   BASIC: {
     costWei: 100n * 10n ** 18n,
-    cardCount: 3,
-    minRarity: "COMMON",
-    dailyLimit: 10,
-  },
-  PREMIUM: {
-    costWei: 300n * 10n ** 18n,
     cardCount: 5,
     minRarity: "UNCOMMON",
-    dailyLimit: 5,
+    dailyLimit: 20,
+  },
+  PREMIUM: {
+    costWei: 500n * 10n ** 18n,
+    cardCount: 6,
+    minRarity: "RARE",
+    dailyLimit: 10,
   },
   ELITE: {
-    costWei: 750n * 10n ** 18n,
-    cardCount: 5,
-    minRarity: "RARE",
-    dailyLimit: 3,
+    costWei: 2000n * 10n ** 18n,
+    cardCount: 7,
+    minRarity: "EPIC",
+    dailyLimit: 5,
   },
   MYTHIC: {
-    costWei: 2000n * 10n ** 18n,
-    cardCount: 5,
-    minRarity: "EPIC",
-    dailyLimit: 1,
+    costWei: 10000n * 10n ** 18n,
+    cardCount: 10,
+    minRarity: "LEGENDARY",
+    dailyLimit: 2,
   },
 };
 
