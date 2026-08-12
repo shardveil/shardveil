@@ -58,8 +58,8 @@ services:
       - key: JWT_EXPIRES_IN
         value: 1h
 
-      - key: ARBITRUM_RPC_URL
-        value: https://arb1.arbitrum.io/rpc
+      # Sepolia only: the deployed contracts live there, so the API is bound
+      # to it regardless of NODE_ENV. See ACTIVE_CHAIN_ID in config/viem.
       - key: ARBITRUM_SEPOLIA_RPC_URL
         value: https://sepolia-rollup.arbitrum.io/rpc
 

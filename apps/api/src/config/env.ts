@@ -35,10 +35,9 @@ const envSchema = z.object({
     .regex(/^\d+[smhd]$/, "JWT_EXPIRES_IN must be like 7d, 24h, 3600s"),
 
   // Ethereum / EVM (on-chain features)
-  // Arbitrum mainnet RPC
-  ARBITRUM_RPC_URL: z.string().url(),
-
-  // Arbitrum Sepolia testnet RPC
+  // Arbitrum Sepolia testnet RPC. The API is bound to Sepolia — see
+  // ACTIVE_CHAIN_ID in config/viem. A mainnet RPC gets added back next to the
+  // ARBITRUM_ONE address map, not before it.
   ARBITRUM_SEPOLIA_RPC_URL: z.string().url(),
 
   // Private keys for transaction signing
