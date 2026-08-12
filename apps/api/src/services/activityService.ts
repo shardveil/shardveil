@@ -3,7 +3,7 @@
  *
  * Provides:
  *   - recordActivity: write Activity to DB + push WS to friends
- *   - getFeed: paginated friend activity feed
+ *   - getFeed: paginated friend activity feed, annotated with like state
  *   - like / unlike: Redis-backed per-activity like sets
  */
 
@@ -31,6 +31,67 @@ const VALID_ACTIVITY_TYPES = new Set<string>([
 
 function isValidActivityType(type: string): type is ActivityType {
   return VALID_ACTIVITY_TYPES.has(type);
+}
+
+/** Redis set of addresses that liked `activityId`. One helper, one format. */
+function likesKey(activityId: string): string {
+  return `activity:likes:${activityId}`;
+}
+
+/** An activity plus the viewer-specific like state the feed renders. */
+export interface FeedActivity extends Activity {
+  likeCount: number;
+  hasLiked: boolean;
+}
+
+/**
+ * Fetch like counts and the viewer's own like state for a page of activities,
+ * in one Redis round-trip rather than two commands per row.
+ *
+ * Degrades to zeroed like state instead of failing the feed — a like counter
+ * is not worth a 500 when the activities themselves loaded fine.
+ */
+async function annotateWithLikes(
+  activities: Activity[],
+  viewerAddress: string,
+): Promise<FeedActivity[]> {
+  if (activities.length === 0) {
+    return [];
+  }
+
+  const zeroed = (): FeedActivity[] =>
+    activities.map((a) => ({ ...a, likeCount: 0, hasLiked: false }));
+
+  let replies: [Error | null, unknown][] | null;
+  try {
+    const pipeline = redis.pipeline();
+    for (const activity of activities) {
+      pipeline.scard(likesKey(activity.id));
+      pipeline.sismember(likesKey(activity.id), viewerAddress);
+    }
+    replies = (await pipeline.exec()) as [Error | null, unknown][] | null;
+  } catch (err) {
+    logger.warn(
+      { error: err instanceof Error ? err.message : String(err) },
+      "activityService.getFeed: like lookup failed, serving feed without counts",
+    );
+    return zeroed();
+  }
+
+  // ioredis returns null when the whole pipeline fails.
+  if (!replies || replies.length !== activities.length * 2) {
+    return zeroed();
+  }
+
+  return activities.map((activity, i) => {
+    const [countErr, count] = replies[i * 2]!;
+    const [likedErr, liked] = replies[i * 2 + 1]!;
+    return {
+      ...activity,
+      likeCount: countErr ? 0 : Number(count ?? 0),
+      hasLiked: likedErr ? false : Number(liked ?? 0) === 1,
+    };
+  });
 }
 
 /**
@@ -129,13 +190,14 @@ export const activityService = {
   },
 
   /**
-   * Return a paginated activity feed for `viewerAddress`.
+   * Return a paginated activity feed for `viewerAddress`, each entry carrying
+   * its like count and whether the viewer has liked it.
    * Feed = activities from the viewer's friends, sorted newest-first.
    */
   async getFeed(
     viewerAddress: string,
     options: { page?: number; pageSize?: number; type?: string } = {},
-  ): Promise<Activity[]> {
+  ): Promise<FeedActivity[]> {
     const page = options.page && options.page > 0 ? options.page : 1;
     const pageSize =
       options.pageSize && options.pageSize > 0 ? options.pageSize : 20;
@@ -162,7 +224,7 @@ export const activityService = {
       take: pageSize,
     });
 
-    return activities;
+    return annotateWithLikes(activities, viewerAddress);
   },
 
   /**
@@ -170,7 +232,7 @@ export const activityService = {
    * Likes are stored in Redis: SADD activity:likes:{activityId} {actorAddress}
    */
   async like(activityId: string, actorAddress: string): Promise<void> {
-    await redis.sadd(`activity:likes:${activityId}`, actorAddress);
+    await redis.sadd(likesKey(activityId), actorAddress);
     logger.debug({ activityId, actorAddress }, "activityService.like: liked");
   },
 
@@ -179,7 +241,7 @@ export const activityService = {
    * SREM activity:likes:{activityId} {actorAddress}
    */
   async unlike(activityId: string, actorAddress: string): Promise<void> {
-    await redis.srem(`activity:likes:${activityId}`, actorAddress);
+    await redis.srem(likesKey(activityId), actorAddress);
     logger.debug(
       { activityId, actorAddress },
       "activityService.unlike: unliked",

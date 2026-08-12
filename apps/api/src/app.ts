@@ -9,6 +9,7 @@ import { publicClient } from "./config/viem";
 import { errorHandler } from "./middleware/errorHandler";
 import { loggerMiddleware } from "./middleware/logger";
 import { standardLimit } from "./middleware/rateLimit";
+import { activityRouter } from "./routes/activity";
 import { authRouter } from "./routes/auth";
 import { cardsRouter } from "./routes/cards";
 import { leaderboardRouter } from "./routes/leaderboard";
@@ -66,6 +67,7 @@ app.route("/leaderboard", leaderboardRouter);
 app.route("/notifications", notificationRouter);
 app.route("/messages", messagesRouter);
 app.route("/social", socialRouter);
+app.route("/activity", activityRouter);
 
 app.get("/", (c) => c.text("ShardVeil API"));
 
