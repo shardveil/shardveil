@@ -6,6 +6,7 @@ import {
   type CardDetail,
   CardDetailView,
 } from "@/components/cards/CardDetailView";
+import { cardDisplayName, cardImageUrl, rarityName } from "@/lib/cardDisplay";
 
 // ─── Revalidation ─────────────────────────────────────────────────────────────
 
@@ -21,6 +22,17 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 // ─── Data fetching ────────────────────────────────────────────────────────────
 
+/** Raw shape the API actually returns — on-chain values, not display values. */
+interface CardDetailApiResponse {
+  cardId: number;
+  rarity: number;
+  name: string | null;
+  minted: string;
+  supplyCap: string;
+  atkBase: number;
+  defBase: number;
+}
+
 const fetchCard = cache(async (cardId: string): Promise<CardDetail | null> => {
   try {
     const res = await fetch(`${API_URL}/cards/${cardId}`, {
@@ -28,7 +40,22 @@ const fetchCard = cache(async (cardId: string): Promise<CardDetail | null> => {
     });
     if (res.status === 404) return null;
     if (!res.ok) throw new Error(`API error: ${res.status}`);
-    return (await res.json()) as CardDetail;
+
+    const data = (await res.json()) as CardDetailApiResponse;
+
+    // Map rather than cast. The API sends a numeric rarity, a null name and no
+    // image; casting straight to CardDetail made rarity.toLowerCase() throw and
+    // returned a 500 for every card.
+    return {
+      id: data.cardId,
+      name: cardDisplayName(data.name, data.cardId),
+      rarity: rarityName(data.rarity),
+      imageUrl: cardImageUrl(null),
+      minted: data.minted,
+      supplyCap: data.supplyCap,
+      power: data.atkBase,
+      defense: data.defBase,
+    };
   } catch {
     return null;
   }

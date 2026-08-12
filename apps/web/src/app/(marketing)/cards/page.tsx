@@ -5,6 +5,7 @@ import { CardFilters } from "@/components/cards/CardFilters";
 import { CardGrid } from "@/components/cards/CardGrid";
 import { CardSearchInput } from "@/components/cards/CardSearchInput";
 import { type CardData } from "@/components/cards/CardThumbnail";
+import { cardDisplayName, cardImageUrl, rarityName } from "@/lib/cardDisplay";
 
 // ─── Revalidation ─────────────────────────────────────────────────────────────
 
@@ -38,15 +39,6 @@ export const metadata: Metadata = {
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
-
-const RARITY_NAMES: Record<number, string> = {
-  0: "COMMON",
-  1: "UNCOMMON",
-  2: "RARE",
-  3: "EPIC",
-  4: "LEGENDARY",
-  5: "MYTHIC",
-};
 
 interface CardsApiResponse {
   data: Array<{
@@ -84,9 +76,9 @@ async function fetchFirstPage(): Promise<{
     return {
       cards: data.data.map((c) => ({
         id: c.cardId,
-        name: c.name ?? `Card #${c.cardId}`,
-        rarity: RARITY_NAMES[c.rarity] ?? "COMMON",
-        imageUrl: null,
+        name: cardDisplayName(c.name, c.cardId),
+        rarity: rarityName(c.rarity),
+        imageUrl: cardImageUrl(null),
         minted: Number(c.minted),
         supplyCap: Number(c.supplyCap),
       })),

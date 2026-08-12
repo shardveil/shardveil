@@ -4,21 +4,14 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 
+import { cardDisplayName, cardImageUrl, rarityName } from "@/lib/cardDisplay";
+
 import { type CardData, CardThumbnail } from "./CardThumbnail";
 
 // API base URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 const PAGE_SIZE = 24;
-
-const RARITY_NAMES: Record<number, string> = {
-  0: "COMMON",
-  1: "UNCOMMON",
-  2: "RARE",
-  3: "EPIC",
-  4: "LEGENDARY",
-  5: "MYTHIC",
-};
 
 interface CardsApiResponse {
   data: Array<{
@@ -69,9 +62,9 @@ async function fetchCards({
   return {
     cards: data.data.map((c) => ({
       id: c.cardId,
-      name: c.name ?? `Card #${c.cardId}`,
-      rarity: RARITY_NAMES[c.rarity] ?? "COMMON",
-      imageUrl: null,
+      name: cardDisplayName(c.name, c.cardId),
+      rarity: rarityName(c.rarity),
+      imageUrl: cardImageUrl(null),
       minted: Number(c.minted),
       supplyCap: Number(c.supplyCap),
     })),
