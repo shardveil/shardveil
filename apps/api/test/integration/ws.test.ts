@@ -140,6 +140,30 @@ describe("BattleChannel — setActiveBattle", () => {
       expect.any(Number),
     );
   });
+
+  it("writes the settlement signature with a TTL too", async () => {
+    const { signSettlement } = await import("../../src/services/battleService");
+
+    // First get() resolves the battle state; the later sig lookups stay null
+    // so no settlement job is enqueued.
+    vi.mocked(redis.get).mockResolvedValueOnce(
+      JSON.stringify({
+        battleId: "match-1",
+        player1: SENDER,
+        player2: RECEIVER,
+        status: "ACTIVE",
+      }),
+    );
+
+    await signSettlement("match-1", SENDER, "0xsig");
+
+    expect(vi.mocked(redis.set)).toHaveBeenCalledWith(
+      `battle:sig:match-1:${SENDER}`,
+      "0xsig",
+      "EX",
+      expect.any(Number),
+    );
+  });
 });
 
 // ---------------------------------------------------------------------------

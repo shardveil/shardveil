@@ -37,6 +37,7 @@ import { battleTimerQueue } from "../../config/queue";
 import { redis } from "../../config/redis";
 import type { Address } from "../../config/viem";
 import {
+  BATTLE_KEY_TTL_SECONDS,
   forfeit,
   getBattleState,
   joinMatch,
@@ -56,12 +57,6 @@ type Socket = WSContext<WebSocket>;
 // ---------------------------------------------------------------------------
 
 const RECONNECT_GRACE_SECONDS = 60;
-
-/**
- * TTL for the `battle:active:{address}` tracking key. Far longer than any real
- * battle (turns are capped at 60s each), so it only reaps abandoned keys.
- */
-const ACTIVE_BATTLE_TTL_SECONDS = 24 * 60 * 60;
 
 // ---------------------------------------------------------------------------
 // Zod payload schemas
@@ -437,14 +432,11 @@ export async function setActiveBattle(
   address: Address,
   matchId: string,
 ): Promise<void> {
-  // ponytail: TTL instead of an explicit clear on every terminal path
-  // (settle / forfeit / timeout / signer). A missed clear leaks the key
-  // forever; an expiry cannot be forgotten.
   await redis.set(
     `battle:active:${address}`,
     matchId,
     "EX",
-    ACTIVE_BATTLE_TTL_SECONDS,
+    BATTLE_KEY_TTL_SECONDS,
   );
 }
 

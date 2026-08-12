@@ -32,6 +32,19 @@ const TURN_TIMEOUT_SECONDS = 60;
 const RECONNECT_GRACE_SECONDS = 60;
 const MAX_FORFEIT_STRIKES = 3;
 
+/**
+ * TTL for every per-match Redis key (state, decks, signatures, forfeit
+ * strikes) and for the per-player `battle:active` key in battleChannel.
+ * Far longer than any real battle — turns are capped at TURN_TIMEOUT_SECONDS
+ * each — so it only reaps keys left behind by a finished or abandoned match.
+ *
+ * ponytail: an expiry instead of deleting each key on every terminal path
+ * (settle / forfeit / turn timeout / settlement signer). A missed delete
+ * leaks forever; an expiry cannot be forgotten. Swap to explicit deletes if
+ * a match ever needs to outlive this window.
+ */
+export const BATTLE_KEY_TTL_SECONDS = 24 * 60 * 60;
+
 // ---------------------------------------------------------------------------
 // Redis key helpers
 // ---------------------------------------------------------------------------
@@ -72,10 +85,16 @@ export async function getBattleState(matchId: string): Promise<BattleState> {
 }
 
 /**
- * Persist battle state to Redis (no TTL — battles are long-lived).
+ * Persist battle state to Redis. Refreshes the TTL on every write, so the
+ * window is measured from the last activity rather than from match creation.
  */
 async function saveBattleState(state: BattleState): Promise<void> {
-  await redis.set(battleKey(state.battleId), JSON.stringify(state));
+  await redis.set(
+    battleKey(state.battleId),
+    JSON.stringify(state),
+    "EX",
+    BATTLE_KEY_TTL_SECONDS,
+  );
 }
 
 /**
@@ -225,7 +244,12 @@ export async function revealDeck(
   }
 
   // Store revealed deck (JSON serialized)
-  await redis.set(deckKey(matchId, address), JSON.stringify(deckCards));
+  await redis.set(
+    deckKey(matchId, address),
+    JSON.stringify(deckCards),
+    "EX",
+    BATTLE_KEY_TTL_SECONDS,
+  );
   logger.info({ matchId, address }, "battle: deck revealed and verified");
 
   // Check if both players have revealed
@@ -300,8 +324,10 @@ export async function forfeit(
   const opponent = state.player1 === address ? state.player2 : state.player1;
 
   if (isAutoForfeit) {
-    // Increment strike counter
+    // Increment strike counter (incr creates the key without a TTL, so set
+    // one explicitly — refreshed on each strike)
     const strikesStr = await redis.incr(forfeitKey(matchId, address));
+    await redis.expire(forfeitKey(matchId, address), BATTLE_KEY_TTL_SECONDS);
     const strikes = strikesStr;
 
     logger.info({ matchId, address, strikes }, "battle: auto-forfeit strike");
@@ -360,7 +386,12 @@ export async function signSettlement(
   }
 
   // Store signature
-  await redis.set(sigKey(matchId, address), signature);
+  await redis.set(
+    sigKey(matchId, address),
+    signature,
+    "EX",
+    BATTLE_KEY_TTL_SECONDS,
+  );
   logger.info({ matchId, address }, "battle: settlement signature stored");
 
   // Check if both signatures are present
