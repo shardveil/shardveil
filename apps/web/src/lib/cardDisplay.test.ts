@@ -77,23 +77,31 @@ describe("cardImageUrl", () => {
 });
 
 describe("cardTypeLabel", () => {
-  it("renders the ordinal, since nothing on chain names the types", () => {
-    // ICardRegistry declares cardType as a bare uint8 with no enum, and the
-    // pinned metadata carries the number only.
-    expect(cardTypeLabel(1)).toBe("Type 1");
-    expect(cardTypeLabel(6)).toBe("Type 6");
+  // The element mapping is project-defined: the contract never names these, and
+  // the 1000 card names score identically on elemental keywords across all six
+  // types, so it cannot be inferred from data.
+  it.each([
+    [1, "Earth"],
+    [2, "Fire"],
+    [3, "Water"],
+    [4, "Dark"],
+    [5, "Light"],
+    [6, "Void"],
+  ])("maps cardType %i to %s", (ordinal, expected) => {
+    expect(cardTypeLabel(ordinal)).toBe(expected);
   });
 
-  it("covers every value the live data actually uses", () => {
-    // Measured across the 1000-card document: types 1-6, ~a sixth each.
-    for (let i = 1; i <= 6; i++) {
-      expect(cardTypeLabel(i)).toBe(`Type ${i}`);
-    }
+  it("covers every value the live data uses, with no gaps", () => {
+    // Measured across the pinned document: types 1-6, ~a sixth of 1000 each.
+    const labels = [1, 2, 3, 4, 5, 6].map(cardTypeLabel);
+    expect(labels).not.toContain("—");
+    expect(new Set(labels).size).toBe(6);
   });
 
-  it("renders a dash rather than 'Type null' when absent", () => {
+  it("renders a dash rather than mislabelling an unknown type", () => {
+    expect(cardTypeLabel(0)).toBe("—");
+    expect(cardTypeLabel(7)).toBe("—");
     expect(cardTypeLabel(null)).toBe("—");
     expect(cardTypeLabel(undefined)).toBe("—");
-    expect(cardTypeLabel(0)).toBe("—");
   });
 });

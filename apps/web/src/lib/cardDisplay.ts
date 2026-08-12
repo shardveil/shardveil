@@ -56,17 +56,24 @@ export function cardImageUrl(imageUrl: string | null | undefined): string {
 }
 
 /**
- * cardType is a bare uint8 in ICardRegistry with no enum, and the pinned
- * metadata carries the number without a name — so nothing on chain or in the
- * corpus labels these.
+ * ICardRegistry.Rarity's sibling: cardType is the element, 1-6.
  *
- * The whitepaper describes "element type (Fire/Water/Dark/Light/Void)" — five
- * names — while the live data uses six values (1-6, each about a sixth of the
- * 1000 cards). Until that is settled, render the ordinal rather than guess a
- * mapping that would mislabel every card.
+ * The contract declares it a bare uint8 with no enum and never reads it, and the
+ * pinned metadata carries the number alone — nothing in code or data names these,
+ * and the names carry no signal either (all 1000 grouped by type score identically
+ * on elemental keywords). The mapping below is the project's, not an inference.
+ *
+ * 0 / unknown renders as a dash rather than mislabelling a card.
  */
+export const ELEMENT_NAMES: Record<number, string> = {
+  1: "Earth",
+  2: "Fire",
+  3: "Water",
+  4: "Dark",
+  5: "Light",
+  6: "Void",
+};
+
 export function cardTypeLabel(cardType: number | null | undefined): string {
-  return typeof cardType === "number" && cardType > 0
-    ? `Type ${cardType}`
-    : "—";
+  return typeof cardType === "number" ? (ELEMENT_NAMES[cardType] ?? "—") : "—";
 }
