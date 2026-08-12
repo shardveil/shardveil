@@ -4,8 +4,14 @@
 import type { CardAbility } from "@/types/card";
 
 interface CardStatsProps {
+  /** atkBase from CardRegistry. */
   power?: number | undefined;
+  /** defBase from CardRegistry. */
   defense?: number | undefined;
+  /** spdBase from CardRegistry. */
+  speed?: number | undefined;
+  /** hpBase from CardRegistry. */
+  health?: number | undefined;
   element?: string | undefined;
   abilities?: CardAbility[] | undefined;
 }
@@ -148,16 +154,85 @@ function ElementIcon({ element }: { element: string }) {
   );
 }
 
+function BoltIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      className="h-4 w-4 text-amber-400"
+    >
+      <path
+        d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+        fill="currentColor"
+        fillOpacity="0.1"
+      />
+    </svg>
+  );
+}
+
+function HeartIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      className="h-4 w-4 text-emerald-400"
+    >
+      <path
+        d="M12 20s-7-4.5-7-9.5A3.5 3.5 0 0112 8a3.5 3.5 0 017 2.5c0 5-7 9.5-7 9.5z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+        fill="currentColor"
+        fillOpacity="0.1"
+      />
+    </svg>
+  );
+}
+
+/** One stat cell. `—` when the value is absent, never "undefined". */
+function StatTile({
+  icon,
+  value,
+  label,
+}: {
+  icon: React.ReactNode;
+  value: number | undefined;
+  label: string;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-1.5 rounded-lg border border-stroke-base bg-surface-elevated px-3 py-3">
+      {icon}
+      <span className="font-display text-xl font-bold text-content-primary">
+        {value ?? "—"}
+      </span>
+      <span className="font-body text-[10px] uppercase tracking-widest text-content-muted">
+        {label}
+      </span>
+    </div>
+  );
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function CardStats({
   power,
   defense,
+  speed,
+  health,
   element,
   abilities,
 }: CardStatsProps) {
   const hasStats =
-    power !== undefined || defense !== undefined || element !== undefined;
+    power !== undefined ||
+    defense !== undefined ||
+    speed !== undefined ||
+    health !== undefined ||
+    element !== undefined;
   const hasAbilities = abilities && abilities.length > 0;
 
   if (!hasStats && !hasAbilities) {
@@ -174,39 +249,23 @@ export function CardStats({
     <section aria-label="Card stats" className="space-y-4">
       {/* ── Stat grid ── */}
       {hasStats && (
-        <div className="grid grid-cols-3 gap-3">
-          {/* Power */}
-          <div className="flex flex-col items-center gap-1.5 rounded-lg border border-stroke-base bg-surface-elevated px-3 py-3">
-            <SwordIcon />
-            <span className="font-display text-xl font-bold text-content-primary">
-              {power ?? "—"}
-            </span>
-            <span className="font-body text-[10px] uppercase tracking-widest text-content-muted">
-              Power
-            </span>
-          </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatTile icon={<SwordIcon />} value={power} label="Attack" />
+          <StatTile icon={<ShieldIcon />} value={defense} label="Defense" />
+          <StatTile icon={<BoltIcon />} value={speed} label="Speed" />
+          <StatTile icon={<HeartIcon />} value={health} label="Health" />
+        </div>
+      )}
 
-          {/* Defense */}
-          <div className="flex flex-col items-center gap-1.5 rounded-lg border border-stroke-base bg-surface-elevated px-3 py-3">
-            <ShieldIcon />
-            <span className="font-display text-xl font-bold text-content-primary">
-              {defense ?? "—"}
-            </span>
-            <span className="font-body text-[10px] uppercase tracking-widest text-content-muted">
-              Defense
-            </span>
-          </div>
-
-          {/* Element */}
-          <div className="flex flex-col items-center gap-1.5 rounded-lg border border-stroke-base bg-surface-elevated px-3 py-3">
-            {element ? <ElementIcon element={element} /> : null}
-            <span className="font-display text-sm font-bold text-content-primary capitalize">
-              {element ?? "—"}
-            </span>
-            <span className="font-body text-[10px] uppercase tracking-widest text-content-muted">
-              Element
-            </span>
-          </div>
+      {element && (
+        <div className="flex items-center gap-2 rounded-lg border border-stroke-base bg-surface-elevated px-3 py-2">
+          <ElementIcon element={element} />
+          <span className="font-body text-[10px] uppercase tracking-widest text-content-muted">
+            Type
+          </span>
+          <span className="ml-auto font-display text-sm font-bold text-content-primary">
+            {element}
+          </span>
         </div>
       )}
 

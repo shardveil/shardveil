@@ -6,7 +6,12 @@ import {
   type CardDetail,
   CardDetailView,
 } from "@/components/cards/CardDetailView";
-import { cardDisplayName, cardImageUrl, rarityName } from "@/lib/cardDisplay";
+import {
+  cardDisplayName,
+  cardImageUrl,
+  cardTypeLabel,
+  rarityName,
+} from "@/lib/cardDisplay";
 
 // ─── Revalidation ─────────────────────────────────────────────────────────────
 
@@ -31,6 +36,9 @@ interface CardDetailApiResponse {
   supplyCap: string;
   atkBase: number;
   defBase: number;
+  spdBase: number;
+  hpBase: number;
+  cardType: number;
 }
 
 const fetchCard = cache(async (cardId: string): Promise<CardDetail | null> => {
@@ -55,6 +63,9 @@ const fetchCard = cache(async (cardId: string): Promise<CardDetail | null> => {
       supplyCap: data.supplyCap,
       power: data.atkBase,
       defense: data.defBase,
+      speed: data.spdBase,
+      health: data.hpBase,
+      element: cardTypeLabel(data.cardType),
     };
   } catch {
     return null;

@@ -54,3 +54,19 @@ export function cardDisplayName(
 export function cardImageUrl(imageUrl: string | null | undefined): string {
   return imageUrl && imageUrl.length > 0 ? imageUrl : CARD_PLACEHOLDER_IMAGE;
 }
+
+/**
+ * cardType is a bare uint8 in ICardRegistry with no enum, and the pinned
+ * metadata carries the number without a name — so nothing on chain or in the
+ * corpus labels these.
+ *
+ * The whitepaper describes "element type (Fire/Water/Dark/Light/Void)" — five
+ * names — while the live data uses six values (1-6, each about a sixth of the
+ * 1000 cards). Until that is settled, render the ordinal rather than guess a
+ * mapping that would mislabel every card.
+ */
+export function cardTypeLabel(cardType: number | null | undefined): string {
+  return typeof cardType === "number" && cardType > 0
+    ? `Type ${cardType}`
+    : "—";
+}

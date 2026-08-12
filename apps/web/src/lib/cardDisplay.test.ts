@@ -4,6 +4,7 @@ import {
   CARD_PLACEHOLDER_IMAGE,
   cardDisplayName,
   cardImageUrl,
+  cardTypeLabel,
   rarityName,
 } from "./cardDisplay";
 
@@ -72,5 +73,27 @@ describe("cardImageUrl", () => {
 
   it("points at a file that ships in public/", () => {
     expect(CARD_PLACEHOLDER_IMAGE.startsWith("/")).toBe(true);
+  });
+});
+
+describe("cardTypeLabel", () => {
+  it("renders the ordinal, since nothing on chain names the types", () => {
+    // ICardRegistry declares cardType as a bare uint8 with no enum, and the
+    // pinned metadata carries the number only.
+    expect(cardTypeLabel(1)).toBe("Type 1");
+    expect(cardTypeLabel(6)).toBe("Type 6");
+  });
+
+  it("covers every value the live data actually uses", () => {
+    // Measured across the 1000-card document: types 1-6, ~a sixth each.
+    for (let i = 1; i <= 6; i++) {
+      expect(cardTypeLabel(i)).toBe(`Type ${i}`);
+    }
+  });
+
+  it("renders a dash rather than 'Type null' when absent", () => {
+    expect(cardTypeLabel(null)).toBe("—");
+    expect(cardTypeLabel(undefined)).toBe("—");
+    expect(cardTypeLabel(0)).toBe("—");
   });
 });

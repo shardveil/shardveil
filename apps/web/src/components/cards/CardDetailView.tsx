@@ -19,6 +19,8 @@ export interface CardDetail {
   supplyCap: string | number;
   power?: number;
   defense?: number;
+  speed?: number;
+  health?: number;
   element?: string;
   lore?: string;
   abilities?: CardAbility[];
@@ -242,6 +244,8 @@ export function CardDetailView({ card }: CardDetailViewProps) {
             <CardStats
               power={card.power}
               defense={card.defense}
+              speed={card.speed}
+              health={card.health}
               element={card.element}
               abilities={card.abilities}
             />
