@@ -1,0 +1,9 @@
+# Only the built graph is tracked. Everything below is either machine-local
+# (absolute interpreter/scan paths) or regenerable per-file cache — `graphify`
+# rebuilds it from source on the next run.
+.graphify_python
+.graphify_root
+.detect_err
+.graphify_*.json
+.graphify_*.txt
+cache/
