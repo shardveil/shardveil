@@ -259,8 +259,16 @@ async function getActivePools(
       functionName: "totalPools",
     });
   } catch (error) {
-    logger.error({ error }, "Failed to fetch totalPools from AMMMarketplace");
-    throw new ApiError(500, "RPC_ERROR", "Failed to fetch marketplace pools");
+    // Pools are pricing enrichment, not the catalogue — CardRegistry is the
+    // source of cards. Throwing here took the whole card list and every detail
+    // page down whenever the public Arbitrum RPC rate-limited us, which is how
+    // /cards/1 started returning RPC_ERROR. Degrade to "no pools": cards render
+    // with poolId null and no buy/sell price, exactly as an unlisted card does.
+    logger.error(
+      { error },
+      "Failed to fetch totalPools from AMMMarketplace — serving cards without pricing",
+    );
+    return [];
   }
 
   const total = Number(totalPools);
