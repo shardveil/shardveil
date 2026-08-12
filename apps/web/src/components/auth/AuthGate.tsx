@@ -81,11 +81,6 @@ export function AuthGate({ children }: AuthGateProps) {
     return null;
   }
 
-  return (
-    <>
-      {/* NetworkBanner placeholder — Task 5.15 will fill this in */}
-      <div data-network-banner-placeholder hidden />
-      {children}
-    </>
-  );
+  // NetworkBanner is rendered by (game)/layout.tsx, above this gate's children.
+  return <>{children}</>;
 }
