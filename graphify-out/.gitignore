@@ -6,4 +6,8 @@
 .detect_err
 .graphify_*.json
 .graphify_*.txt
+.vocab.txt
 cache/
+
+# Dated snapshots of the previous graph, written on every rebuild.
+20*/
