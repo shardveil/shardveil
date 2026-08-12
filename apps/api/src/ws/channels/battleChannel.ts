@@ -38,6 +38,7 @@ import { redis } from "../../config/redis";
 import type { Address } from "../../config/viem";
 import {
   BATTLE_KEY_TTL_SECONDS,
+  deckKey,
   forfeit,
   getBattleState,
   joinMatch,
@@ -158,14 +159,6 @@ function safeSend(socket: Socket, message: string): void {
 }
 
 // ---------------------------------------------------------------------------
-// Helper: deck reveal tracking key
-// ---------------------------------------------------------------------------
-
-function deckRevealedKey(matchId: string, address: Address): string {
-  return `battle:deck:${matchId}:${address}`;
-}
-
-// ---------------------------------------------------------------------------
 // Handler: JOIN_MATCH
 // ---------------------------------------------------------------------------
 
@@ -244,7 +237,7 @@ async function handleRevealDeck(
       ? (state.player2 as Address)
       : (state.player1 as Address);
 
-  const otherDeck = await redis.get(deckRevealedKey(matchId, otherAddress));
+  const otherDeck = await redis.get(deckKey(matchId, otherAddress));
 
   const roomId = `battle:${matchId}`;
   if (otherDeck) {

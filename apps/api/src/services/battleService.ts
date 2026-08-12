@@ -53,7 +53,8 @@ function battleKey(matchId: string): string {
   return `battle:${matchId}`;
 }
 
-function deckKey(matchId: string, address: Address): string {
+/** Exported so battleChannel reads the revealed deck from the same key. */
+export function deckKey(matchId: string, address: Address): string {
   return `battle:deck:${matchId}:${address}`;
 }
 
