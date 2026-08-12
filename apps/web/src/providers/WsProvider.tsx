@@ -166,8 +166,22 @@ export function WsProvider({ children }: WsProviderProps) {
     if (!jwt || !WS_URL) return;
     if (destroyedRef.current) return;
 
-    const url = `${WS_URL}/ws?token=${jwt}`;
-    const ws = new WebSocket(url);
+    // ponytail: an https page cannot open ws:// — upgrade the scheme here instead
+    // of trusting NEXT_PUBLIC_WS_URL to be right in every environment.
+    const base =
+      window.location.protocol === "https:"
+        ? WS_URL.replace(/^ws:\/\//, "wss://")
+        : WS_URL;
+
+    let ws: WebSocket;
+    try {
+      ws = new WebSocket(`${base}/ws?token=${jwt}`);
+    } catch (err) {
+      // The constructor throws on a blocked or malformed URL. Retrying won't help,
+      // and letting it escape the effect takes down the whole React tree.
+      console.error("[ws] failed to open connection", err);
+      return;
+    }
     socketRef.current = ws;
 
     ws.onopen = () => {
