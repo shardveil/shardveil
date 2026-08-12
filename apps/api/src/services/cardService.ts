@@ -22,6 +22,7 @@ import { logger } from "../config/logger";
 import { publicClient } from "../config/viem";
 import { ApiError, NotFoundError } from "../lib/errors";
 import { cacheService } from "./cacheService";
+import { getCardNames } from "./cardMetadataService";
 
 // ============================================================================
 // Types
@@ -46,6 +47,12 @@ export interface CardCatalogItem extends CardTemplate {
    * on the marketplace. Pricing functions use poolId, not cardId — skip them when null.
    */
   poolId: number | null;
+  /**
+   * Display name from the pinned metadata document, or null when metadata is
+   * unconfigured/unreachable. CardRegistry has no name field, so this is the
+   * only source — clients fall back to "Card #<id>".
+   */
+  name: string | null;
 }
 
 export interface CardDetail extends CardCatalogItem {
@@ -389,6 +396,8 @@ export async function getAllTemplates(): Promise<[CardCatalogItem[], string]> {
 
     const activePools = await getActivePools(ammMarketplace);
     const poolByCardId = buildPoolByCardId(activePools);
+    // Names are cosmetic: a metadata outage yields an empty map, never an error.
+    const nameByCardId = await getCardNames();
 
     const cardIds = Array.from({ length: maxCardId }, (_, i) => i + 1);
     const activeTemplates: CardCatalogItem[] = [];
@@ -411,6 +420,7 @@ export async function getAllTemplates(): Promise<[CardCatalogItem[], string]> {
           ...template,
           // null = not listed on the marketplace; pricing calls must be skipped.
           poolId: poolByCardId.get(cardId!)?.poolId ?? null,
+          name: nameByCardId.get(cardId!) ?? null,
         });
       });
     }
@@ -548,6 +558,7 @@ export async function getCardDetail(cardId: number): Promise<CardDetail> {
     const detail: CardDetail = {
       ...normalized,
       poolId,
+      name: (await getCardNames()).get(cardId) ?? null,
       buyPrice: prices === null ? null : (prices[0] as bigint).toString(),
       sellPrice: prices === null ? null : (prices[1] as bigint).toString(),
       cachedAt: new Date().toISOString(),

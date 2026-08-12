@@ -63,6 +63,13 @@ const envSchema = z.object({
   // IPFS
   IPFS_GATEWAY_URL: z.string().url(),
 
+  // Pinned JSON array of card display names, keyed by cardId. Optional: without
+  // it the catalogue still serves, using "Card #N" placeholders.
+  CARD_METADATA_CID: z.preprocess(
+    (v) => (v === "" ? undefined : v),
+    z.string().min(1).optional(),
+  ),
+
   // Pinata (IPFS pinning service)
   PINATA_JWT: z.string().min(1),
 

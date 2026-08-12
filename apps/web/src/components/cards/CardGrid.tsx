@@ -33,6 +33,7 @@ interface CardsApiResponse {
     minted: string;
     active: boolean;
     poolId: number;
+    name: string | null;
   }>;
   total: number;
   page: number;
@@ -68,7 +69,7 @@ async function fetchCards({
   return {
     cards: data.data.map((c) => ({
       id: c.cardId,
-      name: `Card #${c.cardId}`,
+      name: c.name ?? `Card #${c.cardId}`,
       rarity: RARITY_NAMES[c.rarity] ?? "COMMON",
       imageUrl: null,
       minted: Number(c.minted),
