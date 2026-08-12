@@ -1,8 +1,8 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import Link from "next/link";
-
-// TODO: Module 21 — report to Sentry here
+import { useEffect } from "react";
 
 export default function Error({
   error,
@@ -11,6 +11,13 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    // `digest` is the only handle the user can quote back to us, so tag it.
+    Sentry.captureException(error, {
+      tags: { boundary: "route", digest: error.digest ?? "none" },
+    });
+  }, [error]);
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-veil-950 px-4 text-center">
       {/* Decorative rune */}

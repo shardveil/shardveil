@@ -1,8 +1,9 @@
 "use client";
 
-// TODO: Module 21 — report to Sentry here
 // NOTE: global-error.tsx replaces the root layout entirely — no providers
 // or CSS globals are available. Use inline styles only.
+import * as Sentry from "@sentry/nextjs";
+import { useEffect } from "react";
 
 export default function GlobalError({
   error,
@@ -11,6 +12,14 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    // Root-layout failures never reach the route boundary above, so this is the
+    // only place they get reported.
+    Sentry.captureException(error, {
+      tags: { boundary: "global", digest: error.digest ?? "none" },
+    });
+  }, [error]);
+
   return (
     <html lang="en">
       <body

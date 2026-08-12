@@ -151,7 +151,6 @@ describe("hasSufficientAllowance", () => {
     const { publicClient } = fakeClients({ allowance: 100n * ONE_TOKEN });
 
     await expect(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       hasSufficientAllowance(
         publicClient as any,
         SHARD,
@@ -166,7 +165,6 @@ describe("hasSufficientAllowance", () => {
     const { publicClient } = fakeClients({ allowance: 100n * ONE_TOKEN - 1n });
 
     await expect(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       hasSufficientAllowance(
         publicClient as any,
         SHARD,
