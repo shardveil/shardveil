@@ -3,6 +3,13 @@ import "dotenv/config";
 import { z } from "zod";
 
 /**
+ * The pinned card metadata document: a 1000-entry JSON array of {cardId, name}.
+ * CardRegistry stores no names, so this is the only source of card titles.
+ */
+const CARD_METADATA_CID_DEFAULT =
+  "bafkreia2rdv46bwhvqagotelbr7tp5udjlsmsocnt4vcm6ybrzdzwttpfy";
+
+/**
  * Environment variables schema for ShardVeil API.
  * All variables are validated at server boot.
  * If validation fails, the process exits immediately with a detailed error message.
@@ -63,11 +70,14 @@ const envSchema = z.object({
   // IPFS
   IPFS_GATEWAY_URL: z.string().url(),
 
-  // Pinned JSON array of card display names, keyed by cardId. Optional: without
-  // it the catalogue still serves, using "Card #N" placeholders.
+  // Pinned JSON array of card display names, keyed by cardId.
+  //
+  // Defaulted rather than required: a CID is public, immutable, content-addressed
+  // data, not a secret, and leaving it unset silently degraded every card to
+  // "Card #N". Override the env var when the document is re-pinned.
   CARD_METADATA_CID: z.preprocess(
-    (v) => (v === "" ? undefined : v),
-    z.string().min(1).optional(),
+    (v) => (v === "" || v === undefined ? CARD_METADATA_CID_DEFAULT : v),
+    z.string().min(1),
   ),
 
   // Pinata (IPFS pinning service)

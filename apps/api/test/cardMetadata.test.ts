@@ -76,13 +76,19 @@ describe("getCardNames", () => {
     expect(second.get(2)).toBe("Bone Imp");
   });
 
-  it("returns empty and never fetches when no CID is configured", async () => {
-    const fetchMock = vi.fn();
+  it("uses the pinned default CID when the env var is unset", async () => {
+    // CARD_METADATA_CID is defaulted, not optional: leaving it unset used to
+    // degrade every card to "Card #N" silently. A CID is public immutable data,
+    // so the pinned document is the built-in fallback.
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(SAMPLE));
     vi.stubGlobal("fetch", fetchMock);
-    const { getCardNames } = await loadServiceWithoutCid();
+    const { getCardNames: withDefault } = await loadServiceWithoutCid();
 
-    await expect(getCardNames()).resolves.toEqual(new Map());
-    expect(fetchMock).not.toHaveBeenCalled();
+    const names = await withDefault();
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain("bafkrei");
+    expect(names.get(1)).toBe("Ash Rat");
   });
 
   it("degrades to empty on a gateway error rather than throwing", async () => {
