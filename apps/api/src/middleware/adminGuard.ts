@@ -236,9 +236,6 @@ export const requireRole = (
       if (!hasRole) {
         throw new ForbiddenError("Insufficient role");
       }
-
-      // User has the role — proceed to next handler
-      await next();
     } catch (err) {
       // Re-throw known errors, wrap others
       if (err instanceof ForbiddenError) {
@@ -256,5 +253,9 @@ export const requireRole = (
       );
       throw new ForbiddenError("Role check failed");
     }
+
+    // Outside the catch: a 404 or a 500 from the handler is not a role failure,
+    // and reporting it as one hides the actual error.
+    await next();
   };
 };
