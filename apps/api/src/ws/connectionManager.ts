@@ -274,6 +274,20 @@ class ConnectionManager {
     });
   }
 
+  /**
+   * Whether `address` still has at least one open socket on this instance.
+   *
+   * `unregister` drops the address bucket once it empties, so the key's
+   * presence is the answer.
+   *
+   * ponytail: this instance only. A second tab parked on another instance
+   * reads as gone here; make presence per-instance (`presence:{addr}:{id}`)
+   * if the API ever runs multi-instance for real.
+   */
+  hasConnection(address: Address): boolean {
+    return this.byAddress.has(address);
+  }
+
   // ---------------------------------------------------------------------------
   // Metrics
   // ---------------------------------------------------------------------------

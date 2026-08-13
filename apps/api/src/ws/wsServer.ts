@@ -187,6 +187,12 @@ export function createWsApp(): {
           cleanupPresence(ws);
           if (address !== null) {
             connectionManager.unregister(ws);
+          }
+          // Only the *last* socket for this address is a disconnect. A second
+          // tab closing used to mark the player RECONNECT_PENDING and enqueue
+          // the grace job, which then forfeited the match they were still
+          // playing in the other tab.
+          if (address !== null && !connectionManager.hasConnection(address)) {
             handleBattleDisconnect(address).catch((err: unknown) => {
               logger.error(
                 {

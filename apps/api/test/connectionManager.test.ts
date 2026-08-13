@@ -160,3 +160,28 @@ describe("connectionManager — cross-instance fanout", () => {
     expect(subscriberHandlers.has("message")).toBe(true);
   });
 });
+
+describe("connectionManager — hasConnection", () => {
+  // wsServer's onClose gates handleBattleDisconnect on this. Get it wrong and
+  // closing a second tab forfeits the match still open in the first one.
+  it("stays true while another socket for the address is open", () => {
+    const first = connectAlice();
+    const second = connectAlice();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    connectionManager.unregister(second as any);
+    expect(connectionManager.hasConnection(ALICE)).toBe(true);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    connectionManager.unregister(first as any);
+    expect(connectionManager.hasConnection(ALICE)).toBe(false);
+  });
+
+  it("is false for an address that never connected", () => {
+    expect(
+      connectionManager.hasConnection(
+        "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" as `0x${string}`,
+      ),
+    ).toBe(false);
+  });
+});
