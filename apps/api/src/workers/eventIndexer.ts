@@ -93,6 +93,11 @@ function watchEvent<TAbi extends readonly unknown[]>(params: {
     eventName: eventName as never,
     onLogs: async (logs) => {
       let maxBlock = 0n;
+      // The checkpoint feeds the health check's lag number. Advancing it over
+      // a block we failed to record would report a healthy indexer while its
+      // events are missing, so the checkpoint stops at the first failure even
+      // though the rest of the batch is still recorded.
+      let stalledAt: bigint | null = null;
 
       for (const log of logs as Array<
         (typeof logs)[number] & { args?: Record<string, unknown> }
@@ -120,16 +125,33 @@ function watchEvent<TAbi extends readonly unknown[]>(params: {
             },
             "eventIndexer: failed to record event",
           );
+          if (stalledAt === null || blockNum < stalledAt) {
+            stalledAt = blockNum;
+          }
+          continue;
         }
 
         if (blockNum > maxBlock) maxBlock = blockNum;
       }
 
+      if (stalledAt !== null && maxBlock >= stalledAt) {
+        maxBlock = stalledAt - 1n;
+      }
+
       if (maxBlock > 0n) {
-        await redis.set(
-          `indexer:lastBlock:${contractName}`,
-          maxBlock.toString(),
-        );
+        // viem does not await onLogs, so a rejection here would surface as an
+        // unhandled rejection and take the process down.
+        await redis
+          .set(`indexer:lastBlock:${contractName}`, maxBlock.toString())
+          .catch((err: unknown) => {
+            logger.error(
+              {
+                contractName,
+                error: err instanceof Error ? err.message : String(err),
+              },
+              "eventIndexer: failed to store checkpoint",
+            );
+          });
       }
     },
     onError: (err) => {
