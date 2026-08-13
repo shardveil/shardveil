@@ -114,3 +114,17 @@ export const ARBITRUM_RPC_FALLBACKS = [
   "https://arbitrum.drpc.org",
   "https://arbitrum-one-rpc.publicnode.com",
 ] as const;
+
+/**
+ * The global chat rooms clients may read and write.
+ *
+ * The WS channel and the history route both gate on this list, and they used
+ * to keep their own copies — a room added to one and not the other is
+ * writable but unreadable, or the reverse.
+ */
+export const GLOBAL_CHAT_ROOMS = [
+  "#general",
+  "#trading",
+  "#deck-advice",
+  "#guild-recruitment",
+] as const;

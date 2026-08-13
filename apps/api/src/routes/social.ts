@@ -11,6 +11,7 @@
  *   → Load global chat history (authenticated)
  */
 
+import { GLOBAL_CHAT_ROOMS } from "@shardveil/shared";
 import { Hono } from "hono";
 
 import { prisma } from "../config/database";
@@ -26,12 +27,7 @@ const socialRouter = new Hono();
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 100;
 
-const ALLOWED_GLOBAL_ROOMS = new Set([
-  "#general",
-  "#trading",
-  "#deck-advice",
-  "#guild-recruitment",
-]);
+const ALLOWED_GLOBAL_ROOMS = new Set<string>(GLOBAL_CHAT_ROOMS);
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -146,7 +142,7 @@ socialRouter.get("/guild/:guildId/messages", requireAuth, async (c) => {
  *   before  (optional) — ISO 8601 timestamp cursor
  *   limit   (optional) — max messages to return (default 50, max 100)
  */
-socialRouter.get("/chat/global/:room", async (c) => {
+socialRouter.get("/chat/global/:room", requireAuth, async (c) => {
   // Decode percent-encoded room name (e.g. %23general → #general)
   const roomParam = decodeURIComponent(c.req.param("room"));
 

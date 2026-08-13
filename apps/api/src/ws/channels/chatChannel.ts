@@ -29,6 +29,7 @@
  * Moderation: toxic-word filter — flags but does not block.
  */
 
+import { GLOBAL_CHAT_ROOMS } from "@shardveil/shared";
 import type { WSContext } from "hono/ws";
 import type { WebSocket } from "ws";
 import { z } from "zod";
@@ -49,12 +50,7 @@ type Socket = WSContext<WebSocket>;
 // ---------------------------------------------------------------------------
 
 const RATE_LIMIT_WINDOW_SECONDS = 3;
-const ALLOWED_GLOBAL_ROOMS = new Set([
-  "#general",
-  "#trading",
-  "#deck-advice",
-  "#guild-recruitment",
-]);
+const ALLOWED_GLOBAL_ROOMS = new Set<string>(GLOBAL_CHAT_ROOMS);
 
 // ---------------------------------------------------------------------------
 // Zod payload schemas
