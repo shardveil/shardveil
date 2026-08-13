@@ -73,8 +73,11 @@ async function checkRateLimit(
   const count = (results[2]?.[1] as number) ?? 0;
 
   if (count > max) {
-    // Over limit - remove the entry we just added
-    await redis.zremrangebyscore(redisKey, now.toString(), now.toString());
+    // Over limit — remove the entry we just added, by member.
+    // This used to delete by score range [now, now], which takes out every
+    // other request that landed in the same millisecond too: a burst emptied
+    // its own bucket on the first rejection and the next request was let in.
+    await redis.zrem(redisKey, member);
 
     // Get the oldest entry to calculate retry-after time
     const oldest = await redis.zrange(redisKey, 0, 0, "WITHSCORES");
