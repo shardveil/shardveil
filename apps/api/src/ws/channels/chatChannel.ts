@@ -193,6 +193,36 @@ async function isGuildMember(
 }
 
 /**
+ * Whether `address` is allowed to read from and write to `roomId`.
+ *
+ * DM rooms used to be unchecked. The id carries both participants, so any
+ * authenticated socket could JOIN_ROOM `dm:<alice>:<bob>` and read the thread,
+ * or SEND into it — which stored a DirectMessage attributed to a third party.
+ *
+ * One helper for all three handlers: the guild check was already duplicated
+ * across them, and a room test that lives in only two of three places is how
+ * the DM hole survived in the first place.
+ */
+async function canAccessRoom(
+  address: Address,
+  roomId: string,
+  roomType: RoomType,
+): Promise<boolean> {
+  if (roomType === "GLOBAL") {
+    return true;
+  }
+
+  if (roomType === "DM") {
+    // `dm:<addrA>:<addrB>` — addresses contain no colons.
+    const [, addrA, addrB] = roomId.split(":");
+    const me = address.toLowerCase();
+    return addrA?.toLowerCase() === me || addrB?.toLowerCase() === me;
+  }
+
+  return isGuildMember(address, extractGuildId(roomId));
+}
+
+/**
  * Check and enforce per-address-per-room rate limit (1 msg / 3 s).
  * Returns true if the message is allowed, false if rate-limited.
  */
@@ -247,20 +277,12 @@ async function handleJoinRoom(
     return;
   }
 
-  // Guild: verify membership before allowing subscribe
-  if (roomType === "GUILD") {
-    const guildId = extractGuildId(roomId);
-    const member = await isGuildMember(address, guildId);
-    if (!member) {
-      safeSend(
-        socket,
-        buildErrorMessage(
-          "FORBIDDEN",
-          "You must be a guild member to join this room",
-        ),
-      );
-      return;
-    }
+  if (!(await canAccessRoom(address, roomId, roomType))) {
+    safeSend(
+      socket,
+      buildErrorMessage("FORBIDDEN", "You are not a member of this room"),
+    );
+    return;
   }
 
   connectionManager.joinRoom(socket, roomId);
@@ -324,20 +346,12 @@ async function handleSend(
     return;
   }
 
-  // Guild: verify membership before allowing send
-  if (roomType === "GUILD") {
-    const guildId = extractGuildId(roomId);
-    const member = await isGuildMember(address, guildId);
-    if (!member) {
-      safeSend(
-        socket,
-        buildErrorMessage(
-          "FORBIDDEN",
-          "You must be a guild member to send messages in this room",
-        ),
-      );
-      return;
-    }
+  if (!(await canAccessRoom(address, roomId, roomType))) {
+    safeSend(
+      socket,
+      buildErrorMessage("FORBIDDEN", "You are not a member of this room"),
+    );
+    return;
   }
 
   // Rate limiting
@@ -362,7 +376,8 @@ async function handleSend(
       // Extract receiver from DM room id: `dm:<addrA>:<addrB>`
       // Addresses contain no colons, so split yields ["dm", addr1, addr2]
       const [, addr1, addr2] = roomId.split(":");
-      const receiverId = addr1 === address ? addr2 : addr1;
+      const receiverId =
+        addr1?.toLowerCase() === address.toLowerCase() ? addr2 : addr1;
       if (!receiverId) {
         throw new Error(`Cannot parse receiver from DM room id: ${roomId}`);
       }
@@ -441,22 +456,23 @@ async function handleTyping(
 
   const { roomId, isTyping } = parsed.data;
 
+  // classifyRoom was not checked here at all, so any string was broadcastable —
+  // including a battle room id.
   const roomType = classifyRoom(roomId);
+  if (roomType === null) {
+    safeSend(
+      socket,
+      buildErrorMessage("INVALID_ROOM", `Unknown room: ${roomId}`),
+    );
+    return;
+  }
 
-  // Guild: verify membership before broadcasting typing indicator
-  if (roomType === "GUILD") {
-    const guildId = extractGuildId(roomId);
-    const member = await isGuildMember(address, guildId);
-    if (!member) {
-      safeSend(
-        socket,
-        buildErrorMessage(
-          "FORBIDDEN",
-          "You must be a guild member to send typing indicators in this room",
-        ),
-      );
-      return;
-    }
+  if (!(await canAccessRoom(address, roomId, roomType))) {
+    safeSend(
+      socket,
+      buildErrorMessage("FORBIDDEN", "You are not a member of this room"),
+    );
+    return;
   }
 
   // Broadcast typing state to room (except sender — they already know)
