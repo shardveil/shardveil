@@ -1,12 +1,17 @@
 import { SignJWT } from "jose";
-import { arbitrumSepolia } from "viem/chains";
 
 import { prisma } from "../config/database";
 import { env } from "../config/env";
 import { logger } from "../config/logger";
 import { redis } from "../config/redis";
+import { ACTIVE_CHAIN_ID } from "../config/viem";
 import { UnauthorizedError } from "../lib/errors";
-import { consumeNonce, generateNonce, verifySignature } from "../lib/siwe";
+import {
+  consumeNonce,
+  generateNonce,
+  getDomain,
+  verifySignature,
+} from "../lib/siwe";
 
 const PRESENCE_TTL = 300; // 5 minutes in seconds
 
@@ -51,30 +56,45 @@ export async function verifySiweAndIssueJwt(
     throw new UnauthorizedError("Invalid signature");
   }
 
-  // 2. Extract nonce from message (line: "Nonce: <nonce>")
+  // 2. Validate the domain the user was shown (BEFORE consuming nonce).
+  //
+  // EIP-4361 binds a signature to one site. Without this check a phishing page
+  // could pull a nonce from us, have the victim sign "evil.com wants you to
+  // sign in", and hand that signature back here for a JWT as the victim.
+  const domain = extractDomain(message);
+  const expectedDomain = getDomain();
+  if (domain !== expectedDomain) {
+    logger.warn(
+      { domain, expected: expectedDomain },
+      "Domain mismatch in SIWE message",
+    );
+    throw new UnauthorizedError("Invalid domain");
+  }
+
+  // 3. Extract nonce from message (line: "Nonce: <nonce>")
   const nonce = extractField(message, "Nonce");
   if (!nonce) {
     throw new UnauthorizedError("Nonce not found in message");
   }
 
-  // 3. Validate chain ID matches expected chain (BEFORE consuming nonce)
+  // 4. Validate chain ID matches the chain our address book is keyed by
   const chainIdStr = extractField(message, "Chain ID");
   const chainId = chainIdStr ? parseInt(chainIdStr, 10) : null;
-  if (chainId !== arbitrumSepolia.id) {
+  if (chainId !== ACTIVE_CHAIN_ID) {
     logger.warn(
-      { chainId, expected: arbitrumSepolia.id },
+      { chainId, expected: ACTIVE_CHAIN_ID },
       "Chain ID mismatch in SIWE message",
     );
     throw new UnauthorizedError("Invalid chain ID");
   }
 
-  // 4. Consume the nonce atomically (blocks replays and expired nonces)
+  // 5. Consume the nonce atomically (blocks replays and expired nonces)
   const consumed = await consumeNonce(nonce);
   if (!consumed) {
     throw new UnauthorizedError("Nonce expired or already used");
   }
 
-  // 5. Upsert Player — create on first login, no-op on subsequent logins
+  // 6. Upsert Player — create on first login, no-op on subsequent logins
   const player = await prisma.player.upsert({
     where: { address },
     create: { address },
@@ -117,6 +137,18 @@ export async function clearPresence(address: string): Promise<void> {
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
+
+/**
+ * Extract the domain from the first line of a SIWE message:
+ * "{domain} wants you to sign in with your Ethereum account:".
+ */
+function extractDomain(message: string): string | null {
+  const first = message.split("\n")[0] ?? "";
+  const match = /^(\S+) wants you to sign in with your Ethereum account:$/.exec(
+    first,
+  );
+  return match ? match[1]! : null;
+}
 
 /**
  * Extract a value from a SIWE message line formatted as "Key: Value".

@@ -10,6 +10,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 
 import { ValidationError } from "../lib/errors";
+import { optionalAuth } from "../middleware/auth";
 import { authNonceLimit, authVerifyLimit } from "../middleware/rateLimit";
 import {
   clearPresence,
@@ -60,32 +61,17 @@ auth.post("/verify", authVerifyLimit, async (c) => {
 // POST /auth/logout
 // ---------------------------------------------------------------------------
 
-auth.post("/logout", async (c) => {
-  // JWT is stateless — revocation is client-side (discard the token).
-  // We only clear the Redis presence key here.
-  //
-  // To identify the address: attempt to read it from the Authorization header.
-  // If not present, the request is still treated as a successful logout (idempotent).
-  const authHeader = c.req.header("Authorization");
-  if (authHeader?.startsWith("Bearer ")) {
-    // Decode payload without verifying (verification is the auth middleware's job).
-    // We just need the `sub` (address) to clear presence.
-    const token = authHeader.slice(7);
-    try {
-      const [, payloadB64] = token.split(".");
-      if (payloadB64) {
-        const payload = JSON.parse(
-          Buffer.from(payloadB64, "base64url").toString("utf8"),
-        ) as { sub?: string };
-        if (payload.sub) {
-          await clearPresence(payload.sub);
-        }
-      }
-    } catch {
-      // Non-fatal — we still return 200 (logout is idempotent)
-    }
+// JWT is stateless — revocation is client-side (discard the token). All we do
+// here is clear the Redis presence key, and optionalAuth is what says whose.
+// It used to read `sub` out of an unverified token, so anyone could post a
+// hand-written JWT and knock another player offline.
+auth.post("/logout", optionalAuth, async (c) => {
+  const address = c.get("address");
+  if (address) {
+    await clearPresence(address);
   }
 
+  // Idempotent: an absent or bad token is still a successful logout.
   return c.json({ success: true });
 });
 

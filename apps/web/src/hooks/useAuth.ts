@@ -32,8 +32,10 @@ function buildSiweMessage(
   chainId: number,
   nonce: string,
 ): string {
+  // The API checks this against the host of its FRONTEND_URL, so it has to be
+  // where the user actually is — a hardcoded domain breaks every non-prod origin.
   return [
-    `shardveil.io wants you to sign in with your Ethereum account:`,
+    `${window.location.host} wants you to sign in with your Ethereum account:`,
     address,
     ``,
     `Sign in to ShardVeil`,

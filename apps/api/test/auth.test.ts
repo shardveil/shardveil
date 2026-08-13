@@ -3,6 +3,7 @@ import { arbitrumSepolia } from "viem/chains";
 import { describe, expect, it } from "vitest";
 
 import { app } from "../src/app";
+import { redis } from "../src/config/redis";
 import { buildMessage } from "../src/lib/siwe";
 
 // Hardhat/Anvil dev key #0 — universally known, zero value, safe to use in tests
@@ -180,6 +181,48 @@ describe("Auth routes", () => {
     expect(otherIp.status).toBe(200);
   });
 
+  it("POST /auth/verify — a message signed for another domain is rejected", async () => {
+    // The phishing case: evil.com pulls a real nonce from us, shows the victim
+    // its own SIWE prompt, then replays the signature here for a JWT.
+    const { nonce } = await fetchNonce();
+    const message = buildMessage(
+      testAccount.address,
+      nonce,
+      "evil.com",
+      "https://evil.com",
+      arbitrumSepolia.id,
+    );
+    const signature = await testAccount.signMessage({ message });
+
+    const res = await app.request("/auth/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, signature }),
+    });
+
+    expect(res.status).toBe(401);
+  });
+
+  it("POST /auth/logout — an unverified token cannot clear another player's presence", async () => {
+    const victim = "0x1234567890123456789012345678901234567890";
+    await redis.setex(`presence:${victim}`, 300, "1");
+
+    // Well-formed JWT shape, garbage signature — this used to be enough.
+    const b64 = (o: object) =>
+      Buffer.from(JSON.stringify(o)).toString("base64url");
+    const forged = `${b64({ alg: "HS256", typ: "JWT" })}.${b64({
+      sub: victim,
+    })}.notasignature`;
+
+    const res = await app.request("/auth/logout", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${forged}` },
+    });
+
+    expect(res.status).toBe(200); // logout stays idempotent
+    expect(await redis.get(`presence:${victim}`)).toBe("1");
+  });
+
   it("POST /auth/logout — clears presence even with valid token", async () => {
     const { nonce } = await fetchNonce();
     const { message, signature } = await buildSignedMessage(nonce);
@@ -190,6 +233,7 @@ describe("Auth routes", () => {
       body: JSON.stringify({ message, signature }),
     });
     const { token } = (await verifyRes.json()) as { token: string };
+    expect(await redis.get(`presence:${testAccount.address}`)).toBe("1");
 
     const logoutRes = await app.request("/auth/logout", {
       method: "POST",
@@ -199,5 +243,6 @@ describe("Auth routes", () => {
     expect(logoutRes.status).toBe(200);
     const body = (await logoutRes.json()) as { success: boolean };
     expect(body.success).toBe(true);
+    expect(await redis.get(`presence:${testAccount.address}`)).toBeNull();
   });
 });
